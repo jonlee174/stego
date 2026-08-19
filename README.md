@@ -256,6 +256,26 @@ release starts empty. That is expected, not a bug. Verify sync on a real device
 before submitting, because the entitlement failing silently falls back to
 local-only storage.
 
+## Fonts
+
+Both bundled faces are under the SIL Open Font License, which permits embedding
+in a distributed app. Their licences sit beside them in `assets/fonts/`.
+
+| Role | Face | Licence |
+|---|---|---|
+| Display (headings, buttons) | Anton | OFL — `Anton-OFL.txt` |
+| Body (card and UI text) | Arvo | OFL — `Arvo-OFL.txt` |
+
+`african.ttf` is kept for reference because the STEGO wordmark art derives from
+it; it is not bundled into the app, and its own metadata marks it as freely
+distributable.
+
+Rockwell (Monotype) and "This Is The Future" (Darrell Flood) were removed before
+release: both are licensed faces whose terms do not grant redistribution, and
+embedding a `.ttf` in a shipped app is redistribution. Anton and Arvo were
+chosen as the closest visual matches. If you add a face, check its licence
+covers app embedding — "free for personal use" does not.
+
 ## Theme
 
 The palette is sampled straight out of the original assets and is documented at

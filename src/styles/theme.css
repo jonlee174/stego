@@ -5,14 +5,24 @@
    #B8BC86  light olive                #44693D  hunter green
    #21421E  myrtle                     #A0A579  aged avocado                  */
 
+/* Both faces are SIL Open Font License, which permits embedding in a
+   distributed app. Licences ship alongside them in assets/fonts/.
+   Anton stands in for the old display face; Arvo for Rockwell. */
 @font-face {
-  font-family: 'Future';
-  src: url('../../assets/fonts/future.ttf') format('truetype');
+  font-family: 'Anton';
+  src: url('../../assets/fonts/Anton.ttf') format('truetype');
   font-display: swap;
 }
 @font-face {
-  font-family: 'Rockwell';
-  src: url('../../assets/fonts/rockwell.ttf') format('truetype');
+  font-family: 'Arvo';
+  src: url('../../assets/fonts/Arvo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Arvo';
+  src: url('../../assets/fonts/Arvo-Bold.ttf') format('truetype');
+  font-weight: 700;
   font-display: swap;
 }
 
@@ -59,8 +69,8 @@
   --shadow: 0 6px 18px rgba(33, 66, 30, 0.16);
   --shadow-lg: 0 18px 44px rgba(33, 66, 30, 0.24);
 
-  --font-display: 'Future', 'Avenir Next', 'Trebuchet MS', sans-serif;
-  --font-body: 'Rockwell', 'Rockwell Nova', Georgia, 'Times New Roman', serif;
+  --font-display: 'Anton', 'Avenir Next Condensed', 'Trebuchet MS', sans-serif;
+  --font-body: 'Arvo', Georgia, 'Times New Roman', serif;
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
