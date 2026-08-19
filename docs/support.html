@@ -119,19 +119,19 @@
   <body>
     <main>
       <h1>Stego Support</h1>
-      <p class="tagline">Flashcards and practice tests for iPhone and iPad.</p>
+      <p class="tagline">Flashcards and practice tests for iPhone, iPad, and Mac.</p>
 
       <div class="contact">
         <strong>Need help?</strong> Email
         <a href="mailto:jonlee174@gmail.com">jonlee174@gmail.com</a>. Please include your
-        device model and iOS version so problems are easier to reproduce. Replies usually
+        device and OS version so problems are easier to reproduce. Replies usually
         come within a few days.
       </div>
 
       <h2>Getting started</h2>
       <ol>
         <li><strong>Create</strong> — add a title and fill in cards. The front is the prompt, the back is the answer.</li>
-        <li><strong>Study</strong> — tap a card to flip it, swipe left or right to move through the deck.</li>
+        <li><strong>Study</strong> — tap or click a card to flip it; swipe or use the arrow keys to move through the deck.</li>
         <li><strong>Test</strong> — pick a deck, choose your question mix, and take a graded practice test.</li>
       </ol>
       <p>
@@ -141,7 +141,7 @@
 
       <h2>Studying</h2>
       <ul>
-        <li>Tap the card, or press space, to flip it.</li>
+        <li>Tap or click the card, or press space, to flip it.</li>
         <li><strong>Got it</strong> and <strong>Review again</strong> sort cards as you go. At the end of a round you can drill just the ones you missed.</li>
         <li><strong>Show first</strong> switches between Front, Back, and Mixed.</li>
         <li>The shuffle and restart buttons are in the top bar.</li>
@@ -175,8 +175,8 @@
 
       <h2>iCloud sync</h2>
       <p>
-        If you are signed in to iCloud, decks sync automatically across your devices. Nothing
-        needs switching on. If decks are not appearing on another device:
+        If you are signed in to iCloud, decks sync automatically between your iPhone, iPad, and
+        Mac. Nothing needs switching on. If decks are not appearing on another device:
       </p>
       <ul>
         <li>Check both devices use the same Apple Account and are signed in to iCloud.</li>
@@ -185,12 +185,32 @@
         <li>If iCloud is unavailable, Stego keeps working and saves everything on the device instead — no decks are lost.</li>
       </ul>
 
+      <h2>On Mac</h2>
+      <p>
+        The Mac version has the same decks and the same tests, with a few additions that
+        make sense with a keyboard.
+      </p>
+      <table>
+        <tr><th>Shortcut</th><th>Does</th></tr>
+        <tr><td><code>Space</code> or <code>Return</code></td><td>Flip the current card</td></tr>
+        <tr><td><code>&larr;</code> / <code>&rarr;</code></td><td>Previous / next card or question</td></tr>
+        <tr><td><code>1</code></td><td>Mark the card "Review again"</td></tr>
+        <tr><td><code>2</code></td><td>Mark the card "Got it"</td></tr>
+        <tr><td><code>&#8984;S</code></td><td>Save the deck you are editing</td></tr>
+        <tr><td><code>Esc</code></td><td>Close a dialog</td></tr>
+      </table>
+      <p>
+        Your decks are stored in a single <code>decks.json</code> file. To find it, use
+        <strong>File &rsaquo; Reveal decks.json in Finder</strong> from the menu bar.
+      </p>
+
       <h2>Importing and exporting</h2>
       <p>
         Decks live in a plain JSON file, so they are easy to back up or move. Use
         <strong>Export</strong> on the deck list to write a file, and <strong>Import</strong>
         to bring one back — either merging it with your decks or replacing them. On iPhone and
-        iPad the file appears in the Files app under <strong>Stego</strong>.
+        iPad the file appears in the Files app under <strong>Stego</strong>. On Mac you choose
+        where to save it.
       </p>
 
       <h2>Your data</h2>
@@ -204,6 +224,7 @@
       <h2>Requirements</h2>
       <ul>
         <li>iOS or iPadOS 14.0 or later.</li>
+        <li>macOS 12.0 (Monterey) or later.</li>
         <li>An iCloud account is optional, and only needed for syncing between devices.</li>
         <li>No internet connection is required to create, study, or test.</li>
       </ul>
