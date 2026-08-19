@@ -1,0 +1,140 @@
+WindowManager:
+    MainWindow:
+    CreateWindow:
+    LearnWindow:
+    FlashcardWindow:
+
+<MainWindow>:
+    Button:
+        text: "CREATE"
+        pos_hint: {"x": 0.20, "top": 0.5}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        size_hint: 0.25, 0.125
+        font_name: "Future"
+        font_size: 25
+        canvas.before:
+            Color:
+                rgba: (0.25, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [15]
+        on_release:
+            app.root.current = "create"
+            root.manager.transition.direction = "up"
+
+    Button:
+        text: "LEARN"
+        pos_hint: {"x": 0.55, "top": 0.5}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        size_hint: 0.25, 0.125
+        font_name: "Future"
+        font_size: 25
+        canvas.before:
+            Color:
+                rgba: (0.25, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [15]
+        on_release:
+            app.root.current = "learn"
+            root.manager.transition.direction = "up"
+
+<CreateWindow>:
+    Button:
+        text: "Create"
+        font_name: "Future"
+        size_hint: 0.1, 0.1
+        pos_hint: {"x": 0.875, "top": 0.95}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        canvas.before:
+            Color:
+                rgba: (0.2109, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [15]
+        on_release:
+            app.root.current = "main"
+            root.manager.transition.direction = "down"
+        on_press: root.create_button()
+
+    Label:
+        text: "Add Card"
+        font_name: "Future"
+        font_size: 12
+        pos_hint: {"x": 0.425, "y": -0.32}
+
+    Button:
+        text: "+"
+        font_size: 35
+        size_hint: 0.05, 0.055
+        pos_hint: {"x": 0.9, "top": 0.15}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        canvas.before:
+            Color:
+                rgba: (0.2109, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [20]
+        on_press: root.add_button()
+
+    Button:
+        text: "Back"
+        font_name: "Future"
+        size_hint: 0.065, 0.1
+        pos_hint: {"x": 0.025, "top": 0.95}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        canvas.before:
+            Color:
+                rgba: (0.2109, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [15]
+        on_release:
+            app.root.current = "main"
+            root.manager.transition.direction = "down"
+
+<LearnWindow>:
+    Button:
+        text: "Back"
+        font_name: "Future"
+        size_hint: 0.065, 0.1
+        pos_hint: {"x": 0.025, "top": 0.95}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        canvas.before:
+            Color:
+                rgba: (0.2109, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [15]
+        on_release:
+            app.root.current = "main"
+            root.manager.transition.direction = "down"
+
+<SetTile>:
+    on_release:
+        app.root.current = "flashcards"
+        
+
+<FlashcardWindow>:
+    Button:
+        text: "Back"
+        font_name: "Future"
+        size_hint: 0.065, 0.1
+        pos_hint: {"x": 0.025, "top": 0.95}
+        background_color: 0.2109, 0.75, 0.2344, 0
+        canvas.before:
+            Color:
+                rgba: (0.2109, 0.3711, 0.2344, 1) if self.state == "normal" else (0.2109, 0.45, 0.2344, 1)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [15]
+        on_release:
+            app.root.current = "learn"
+            root.manager.transition.direction = "down"
