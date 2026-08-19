@@ -171,6 +171,91 @@ contents of `dist/` can be hosted on any static host, opened in Safari, and
 added to the home screen. Deck data then lives in browser storage instead of a
 JSON file, and import/export still work.
 
+## Releasing
+
+Two separate pipelines. iOS and iPadOS are one universal binary going to the App
+Store; macOS is a Developer ID build you host yourself. Nothing about the Mac
+app goes through App Store Connect.
+
+### Preflight (both)
+
+```bash
+npm test          # 32 tests
+npm run build     # type-check + bundle
+```
+
+Bump versions before every upload. App Store Connect **rejects a build number it
+has already seen**, and this is the single most common way a release stalls.
+
+- `MARKETING_VERSION` in Xcode = user-facing version (1.1). Bump for a release.
+- `CURRENT_PROJECT_VERSION` = build number. Bump for *every* upload, even a
+  re-upload of the same version.
+- `version` in `package.json` drives the macOS app and DMG filename. Keep it in
+  step with `MARKETING_VERSION`.
+
+### iOS + iPadOS
+
+```bash
+npm run ios:sync   # rebuild the web bundle into the native project
+npm run ios:open
+```
+
+1. Destination → **Any iOS Device (arm64)**. Archive is disabled while a
+   simulator is selected.
+2. **Product → Archive**. Automatic signing issues the Apple Distribution
+   certificate and provisioning profile the first time.
+3. Organizer → **Distribute App → App Store Connect → Upload**.
+4. Processing takes 5–30 minutes; App Store Connect emails you when the build
+   is ready to select.
+5. App Store Connect → the app → the version → **Build** → pick the new build.
+   Uploading does not attach a build on its own; if an older one is attached you
+   have to swap it.
+6. First submission only, fill in: screenshots (**6.9" iPhone and 13" iPad are
+   both required**), description, keywords, support URL, privacy policy URL,
+   category Education, price, and age rating.
+7. **App Privacy** → *Data Not Collected*. Matches `PrivacyInfo.xcprivacy`.
+8. **Submit for Review.** Typically 24–48 hours.
+
+Export compliance is already answered by `ITSAppUsesNonExemptEncryption` in
+`Info.plist`, so the upload will not stop to ask.
+
+### macOS
+
+The signing certificate is different from the one used for day-to-day builds,
+and it does not exist until you create it:
+
+1. **Xcode → Settings → Accounts → Manage Certificates → + → Developer ID
+   Application.** Requires the Account Holder role. Without this, builds are
+   signed "Apple Development" and Gatekeeper rejects them on other Macs.
+2. Create an app-specific password at appleid.apple.com.
+3. Build, sign, notarize, and staple in one step:
+
+```bash
+export APPLE_ID="you@example.com"
+export APPLE_APP_SPECIFIC_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+export APPLE_TEAM_ID="XXXXXXXXXX"
+npm run mac:release
+```
+
+4. Verify before publishing anything:
+
+```bash
+spctl -a -t exec -vv release/mac-arm64/Stego.app   # must say: accepted
+xcrun stapler validate release/Stego-*.dmg          # must say: worked
+```
+
+5. Publish both DMGs (arm64 and x64) on GitHub Releases.
+
+`npm run mac:dist` stays un-notarized and is the fast path for local testing.
+
+### iCloud sync caveat
+
+Development and production use **separate iCloud containers**. Decks synced
+while testing will not appear in the released app, and the first launch after
+release starts empty. That is expected, not a bug. Verify sync on a real device
+before submitting, because the entitlement failing silently falls back to
+local-only storage.
+
 ## Theme
 
 The palette is sampled straight out of the original assets and is documented at

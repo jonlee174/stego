@@ -1,7 +1,7 @@
 {
   "name": "stego",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "productName": "Stego",
   "description": "Stegosaurus-themed flashcard and testing app for macOS and iOS",
   "type": "module",
@@ -17,7 +17,8 @@
     "mac:dist": "npm run build && electron-builder --mac",
     "ios:sync": "npm run build && cap sync ios",
     "ios:open": "npm run ios:sync && cap open ios",
-    "ios:device": "npm run ios:sync && cap run ios"
+    "ios:device": "npm run ios:sync && cap run ios",
+    "mac:release": "npm run build && electron-builder --mac --config.mac.notarize=true"
   },
   "dependencies": {
     "@capacitor/core": "^7.4.2",
@@ -59,9 +60,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["arm64", "x64"]
+          "arch": [
+            "arm64",
+            "x64"
+          ]
         }
-      ]
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": false
     },
     "dmg": {
       "title": "Stego"

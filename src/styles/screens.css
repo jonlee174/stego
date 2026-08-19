@@ -67,6 +67,25 @@
   }
 }
 
+/* On an iPad or a wide desktop window the menu is short relative to the screen,
+   so float it in the middle instead of stranding it against the top edge.
+   Auto margins rather than align-items so a short window still scrolls. */
+@media (min-width: 720px) {
+  .home .content {
+    display: flex;
+  }
+
+  /* `auto` on all four sides: the top/bottom pair centres it vertically, and
+     the left/right pair preserves the horizontal centring `.wrap` sets up.
+     Writing `auto 0` here zeroes the side margins and pins the column left. */
+  .home__inner {
+    margin: auto;
+    width: 100%;
+    padding-top: var(--safe-top);
+    padding-bottom: 4vh;
+  }
+}
+
 .home__head {
   text-align: center;
 }
