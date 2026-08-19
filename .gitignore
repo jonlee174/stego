@@ -1,4 +1,35 @@
-__pycache__
-data
+node_modules/
+dist/
+release/
+*.tsbuildinfo
+*.log
 
+# Capacitor / iOS build output
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+ios/DerivedData/
+
+# Xcode per-user state: window layout, breakpoints, selected scheme.
+# Carries your macOS username and causes noisy diffs between machines.
+**/xcuserdata/
+*.xcuserstate
+
+# Signing material. None of this is in the repo today; the rule is here so it
+# can never be added by accident.
+*.p12
+*.p8
+*.cer
+*.certSigningRequest
+*.mobileprovision
+ios/App/App/*.entitlements.bak
+
+# Local tool + editor state
+.claude/settings.local.json
+.vscode/
+.idea/
+.DS_Store
+
+__pycache__/
 *.exe
