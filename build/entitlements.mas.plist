@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The Mac App Store requires the sandbox. Everything below re-grants the
+	     specific things Stego needs once inside it. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+
+	<!-- The export save panel hands back a file the user picked; without this the
+	     app cannot write to it. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+
+	<!-- Keeps the shared deck file reachable inside the sandbox. The container is
+	     the same one the iOS app uses, which is what lets the two sync. -->
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.com.jonlee.stego</string>
+	</array>
+	<key>com.apple.developer.ubiquity-container-identifiers</key>
+	<array>
+		<string>iCloud.com.jonlee.stego</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudDocuments</string>
+	</array>
+
+	<key>com.apple.application-identifier</key>
+	<string>TTM9BN6M53.com.jonlee.stego</string>
+	<key>com.apple.developer.team-identifier</key>
+	<string>TTM9BN6M53</string>
+</dict>
+</plist>

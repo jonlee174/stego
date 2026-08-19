@@ -18,7 +18,8 @@
     "ios:sync": "npm run build && cap sync ios",
     "ios:open": "npm run ios:sync && cap open ios",
     "ios:device": "npm run ios:sync && cap run ios",
-    "mac:release": "npm run build && electron-builder --mac --config.mac.notarize=true"
+    "mac:release": "npm run build && electron-builder --mac --config.mac.notarize=true",
+    "mas:dist": "npm run build && electron-builder --mac mas"
   },
   "dependencies": {
     "@capacitor/core": "^7.4.2",
@@ -74,6 +75,14 @@
     },
     "dmg": {
       "title": "Stego"
+    },
+    "mas": {
+      "category": "public.app-category.education",
+      "icon": "build/icon.png",
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+      "provisioningProfile": "build/embedded.provisionprofile",
+      "hardenedRuntime": false
     }
   }
 }

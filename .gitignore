@@ -33,3 +33,4 @@ ios/App/App/*.entitlements.bak
 
 __pycache__/
 *.exe
+*.provisionprofile
