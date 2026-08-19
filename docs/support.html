@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stego — Support</title>
+    <style>
+      :root {
+        --bg: #dcdcc8;
+        --surface: #ecece0;
+        --surface-2: #e2e2d2;
+        --ink: #21421e;
+        --ink-soft: #4d5a45;
+        --accent: #0a4e1d;
+        --line: #b9bda0;
+        color-scheme: light;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1a2318;
+          --surface: #243021;
+          --surface-2: #2c3928;
+          --ink: #e8ead6;
+          --ink-soft: #c3caab;
+          --accent: #6fb43a;
+          --line: #43563d;
+          color-scheme: dark;
+        }
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 40px 20px 80px;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Georgia, "Times New Roman", serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 40px;
+      }
+
+      h1 {
+        font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+        font-size: 2rem;
+        margin: 0 0 2px;
+        color: var(--accent);
+      }
+
+      h2 {
+        font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+        font-size: 1.05rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 36px 0 12px;
+        color: var(--ink-soft);
+        border-top: 1px solid var(--line);
+        padding-top: 16px;
+      }
+
+      h3 {
+        font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+        font-size: 1rem;
+        margin: 22px 0 4px;
+      }
+
+      .tagline { color: var(--ink-soft); margin: 0 0 8px; }
+
+      .contact {
+        background: var(--surface-2);
+        border-left: 4px solid var(--accent);
+        border-radius: 0 10px 10px 0;
+        padding: 16px 20px;
+        margin: 26px 0 0;
+      }
+
+      ol, ul { padding-left: 22px; }
+      li { margin-bottom: 7px; }
+
+      a { color: var(--accent); }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.88em;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        padding: 1px 6px;
+        border-radius: 5px;
+      }
+
+      table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+      th, td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line);
+        font-size: 0.95rem;
+      }
+      th { font-family: "Avenir Next", "Trebuchet MS", sans-serif; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+
+      footer {
+        max-width: 760px;
+        margin: 24px auto 0;
+        text-align: center;
+        color: var(--ink-soft);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Stego Support</h1>
+      <p class="tagline">Flashcards and practice tests for iPhone and iPad.</p>
+
+      <div class="contact">
+        <strong>Need help?</strong> Email
+        <a href="mailto:jonlee174@gmail.com">jonlee174@gmail.com</a>. Please include your
+        device model and iOS version so problems are easier to reproduce. Replies usually
+        come within a few days.
+      </div>
+
+      <h2>Getting started</h2>
+      <ol>
+        <li><strong>Create</strong> — add a title and fill in cards. The front is the prompt, the back is the answer.</li>
+        <li><strong>Study</strong> — tap a card to flip it, swipe left or right to move through the deck.</li>
+        <li><strong>Test</strong> — pick a deck, choose your question mix, and take a graded practice test.</li>
+      </ol>
+      <p>
+        A new install includes a sample deck called <em>Dinosaur Basics</em> so there is
+        something to try straight away. Edit or delete it whenever you like.
+      </p>
+
+      <h2>Studying</h2>
+      <ul>
+        <li>Tap the card, or press space, to flip it.</li>
+        <li><strong>Got it</strong> and <strong>Review again</strong> sort cards as you go. At the end of a round you can drill just the ones you missed.</li>
+        <li><strong>Show first</strong> switches between Front, Back, and Mixed.</li>
+        <li>The shuffle and restart buttons are in the top bar.</li>
+      </ul>
+
+      <h2>Building a test</h2>
+      <p>
+        You control how much of the deck is used and how many questions of each type. Four
+        presets — Quick 10, Even mix, Write-in only, and Whole deck — are there as starting
+        points.
+      </p>
+      <table>
+        <tr><th>Type</th><th>How it works</th><th>Needs</th></tr>
+        <tr><td>Write-in</td><td>You type the answer</td><td>1 card</td></tr>
+        <tr><td>True / False</td><td>Judge whether a pairing is genuine</td><td>2 cards</td></tr>
+        <tr><td>Matching</td><td>Match prompts to an answer bank</td><td>2–8 cards per block</td></tr>
+      </table>
+      <p>
+        Cards are drawn at random each time, so no two tests are identical. A card with a
+        blank front or back is skipped, because it cannot be turned into a question.
+      </p>
+
+      <h2>How answers are graded</h2>
+      <ul>
+        <li>Capitalisation, punctuation, accents, and extra spaces are ignored. A leading "a", "an", or "the" is ignored too.</li>
+        <li><strong>Small typos are forgiven</strong> on longer answers. Answers of four characters or fewer must be exact.</li>
+        <li><strong>Alternative answers</strong> — separate them with a semicolon or a vertical bar and any one of them counts as correct. For example <code>T. rex; Tyrannosaurus</code>.</li>
+        <li>Matching blocks give <strong>partial credit</strong>: one point per correct pair.</li>
+        <li>After submitting you get a score, a breakdown by question type, and a review of every question with the correct answers.</li>
+      </ul>
+
+      <h2>iCloud sync</h2>
+      <p>
+        If you are signed in to iCloud, decks sync automatically across your devices. Nothing
+        needs switching on. If decks are not appearing on another device:
+      </p>
+      <ul>
+        <li>Check both devices use the same Apple Account and are signed in to iCloud.</li>
+        <li>Check <strong>Settings › [your name] › iCloud › iCloud Drive</strong> is on.</li>
+        <li>Sync needs a network connection. Open the app on both devices once while online.</li>
+        <li>If iCloud is unavailable, Stego keeps working and saves everything on the device instead — no decks are lost.</li>
+      </ul>
+
+      <h2>Importing and exporting</h2>
+      <p>
+        Decks live in a plain JSON file, so they are easy to back up or move. Use
+        <strong>Export</strong> on the deck list to write a file, and <strong>Import</strong>
+        to bring one back — either merging it with your decks or replacing them. On iPhone and
+        iPad the file appears in the Files app under <strong>Stego</strong>.
+      </p>
+
+      <h2>Your data</h2>
+      <p>
+        Stego has no accounts, no ads, and no analytics, and collects nothing about you. Decks
+        stay on your device and in your own private iCloud container, which the developer
+        cannot access. Deleting the app removes its local data. Full details are in the
+        <a href="privacy.html">privacy policy</a>.
+      </p>
+
+      <h2>Requirements</h2>
+      <ul>
+        <li>iOS or iPadOS 14.0 or later.</li>
+        <li>An iCloud account is optional, and only needed for syncing between devices.</li>
+        <li>No internet connection is required to create, study, or test.</li>
+      </ul>
+
+      <h2>Reporting a bug or asking for a feature</h2>
+      <p>
+        Email <a href="mailto:jonlee174@gmail.com">jonlee174@gmail.com</a>, or open an issue on
+        <a href="https://github.com/jonlee174/stego/issues">GitHub</a>. Useful details: what you
+        expected, what happened instead, and the steps that led there.
+      </p>
+    </main>
+
+    <footer>Stego · <a href="privacy.html">Privacy Policy</a></footer>
+  </body>
+</html>
