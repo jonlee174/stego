@@ -1,7 +1,7 @@
 {
   "name": "stego",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "productName": "Stego",
   "description": "Stegosaurus-themed flashcard and testing app for macOS and iOS",
   "type": "module",

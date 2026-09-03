@@ -85,9 +85,20 @@ const nativeBackend: Backend = {
   async read() {
     if (await cloud.available()) {
       const remote = await cloud.read(DECKS_FILE);
-      // Nothing in iCloud yet: adopt whatever is already on this device so
-      // enabling sync carries the decks up instead of wiping them.
       if (remote !== null) return remote;
+
+      // Nothing in iCloud yet. Carry any local decks up now — the caller treats
+      // whatever read() returns as already stored and skips the matching write,
+      // so deferring this would leave the container empty forever.
+      const local = await readLocal();
+      if (local !== null) {
+        try {
+          await cloud.write(DECKS_FILE, local);
+        } catch {
+          // Keep serving the local copy; the next write will retry.
+        }
+      }
+      return local;
     }
     return readLocal();
   },
@@ -186,9 +197,19 @@ export function watchDecks(onChange: (decks: Deck[]) => void): () => void {
   window.addEventListener('focus', reread);
   document.addEventListener('visibilitychange', reread);
 
+  // On a fresh install iCloud can take a few seconds to provision the container.
+  // Without these the app would sit on local storage until the user happened to
+  // background and reopen it.
+  const retries = [3000, 8000, 20000].map((delay) =>
+    setTimeout(() => {
+      if (!stopped) backend().read().then(deliver, () => {});
+    }, delay),
+  );
+
   return () => {
     stopped = true;
     stopBackend();
+    retries.forEach(clearTimeout);
     window.removeEventListener('focus', reread);
     document.removeEventListener('visibilitychange', reread);
   };

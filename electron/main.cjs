@@ -14,14 +14,30 @@ const ICLOUD_CONTAINER = 'iCloud.com.jonlee.stego';
  * tildes>/Documents. It only exists once the container has been provisioned,
  * which happens after the iOS app runs once under the same Apple ID.
  */
-function icloudDir() {
+/**
+ * Inside the App Sandbox, os.homedir() is the app's container
+ * (~/Library/Containers/<bundle id>/Data), not the user's home. The ubiquity
+ * container lives under the *real* home, so peel the container suffix back off.
+ * Unsandboxed builds fall through unchanged.
+ */
+function realHome() {
+  const home = os.homedir();
+  const marker = `${path.sep}Library${path.sep}Containers${path.sep}`;
+  const cut = home.indexOf(marker);
+  return cut === -1 ? home : home.slice(0, cut);
+}
+
+function icloudContainer() {
   return path.join(
-    os.homedir(),
+    realHome(),
     'Library',
     'Mobile Documents',
     ICLOUD_CONTAINER.replace(/\./g, '~'),
-    'Documents',
   );
+}
+
+function icloudDir() {
+  return path.join(icloudContainer(), 'Documents');
 }
 
 function localFile() {
@@ -31,7 +47,15 @@ function localFile() {
 /** The iCloud copy when it is available, otherwise a plain local file. */
 function DECKS_FILE() {
   try {
-    if (fsSync.existsSync(icloudDir())) return path.join(icloudDir(), 'decks.json');
+    // macOS provisions the container root itself once the app is entitled and
+    // iCloud Drive is on. Only then is it safe to create Documents inside it —
+    // creating the whole path unconditionally would leave a dead folder behind
+    // on a machine with iCloud switched off.
+    if (fsSync.existsSync(icloudContainer())) {
+      const dir = icloudDir();
+      fsSync.mkdirSync(dir, { recursive: true });
+      return path.join(dir, 'decks.json');
+    }
   } catch {
     // Fall through to local storage.
   }
@@ -178,6 +202,15 @@ ipcMain.handle('decks:read', async () => {
     if (target !== localFile()) {
       try {
         const carried = await fs.readFile(localFile(), 'utf8');
+        // Copy it up straight away. The renderer treats whatever read() returns
+        // as already-on-disk and suppresses the matching write, so without this
+        // the decks would sit in local storage and sync would never start.
+        try {
+          await fs.mkdir(path.dirname(target), { recursive: true });
+          await fs.writeFile(target, carried, 'utf8');
+        } catch {
+          // Still hand back the decks even if the copy up fails.
+        }
         lastWritten = carried;
         return carried;
       } catch {
