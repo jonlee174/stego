@@ -40,6 +40,24 @@ function icloudDir() {
   return path.join(icloudContainer(), 'Documents');
 }
 
+/**
+ * The window frame is painted by the OS before the page loads and while the
+ * window is inactive, so the last theme's background is remembered between
+ * launches. Otherwise every start would flash the default green.
+ */
+function chromeFile() {
+  return path.join(app.getPath('userData'), 'window-background');
+}
+
+function savedBackground() {
+  try {
+    const value = fsSync.readFileSync(chromeFile(), 'utf8').trim();
+    return /^(#[0-9a-f]{3,8}|rgba?\([\d.,\s%]+\))$/i.test(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 function localFile() {
   return path.join(app.getPath('userData'), 'decks.json');
 }
@@ -74,7 +92,7 @@ function createWindow() {
     minWidth: 380,
     minHeight: 520,
     title: 'Stego',
-    backgroundColor: '#DCDCC8',
+    backgroundColor: savedBackground() ?? '#DCDCC8',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 14, y: 15 },
     webPreferences: {
@@ -230,6 +248,17 @@ ipcMain.handle('decks:write', async (_event, contents) => {
   await fs.rename(temp, target);
   lastWritten = contents;
   watchDecks();
+});
+
+ipcMain.handle('window:background', async (_event, color) => {
+  if (typeof color !== 'string') return;
+  try {
+    mainWindow?.setBackgroundColor(color);
+    await fs.mkdir(path.dirname(chromeFile()), { recursive: true });
+    await fs.writeFile(chromeFile(), color, 'utf8');
+  } catch {
+    // Cosmetic only, so a failure here must not surface to the user.
+  }
 });
 
 ipcMain.handle('decks:path', async () => DECKS_FILE());

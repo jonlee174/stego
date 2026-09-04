@@ -8,7 +8,7 @@ const PAIRS: [string, string][] = [
   ['Velociraptor', 'Turkey-sized feathered dromaeosaur with a sickle claw'],
   ['Brachiosaurus', 'Long-necked sauropod whose front legs were longer than its back legs'],
   ['Ankylosaurus', 'Armored dinosaur with a bony club at the end of its tail'],
-  ['Pteranodon', 'Flying reptile — a pterosaur, not actually a dinosaur'],
+  ['Pteranodon', 'Flying reptile, a pterosaur rather than a true dinosaur'],
   ['Archaeopteryx', 'Feathered Jurassic link between dinosaurs and birds'],
   ['Paleontology', 'The study of life from past geological periods through fossils'],
   ['Mesozoic Era', 'The age of dinosaurs: Triassic, Jurassic, and Cretaceous'],

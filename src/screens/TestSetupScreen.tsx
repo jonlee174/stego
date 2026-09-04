@@ -14,7 +14,8 @@ import {
   validate,
 } from '../lib/testgen';
 import type { Direction, Test, TestConfig } from '../types';
-import trexArt from '../../assets/images/trex.png';
+import { Mascot } from '../components/Dinos';
+import { useDino } from '../state/theme';
 
 export default function TestSetupScreen({
   nav,
@@ -28,6 +29,7 @@ export default function TestSetupScreen({
   onStart: (test: Test, config: TestConfig) => void;
 }) {
   const deck = useDeck(deckId);
+  const [dino] = useDino();
   const pool = useMemo(() => (deck ? usableCards(deck) : []), [deck]);
   const [config, setConfig] = useState<TestConfig | null>(null);
 
@@ -140,7 +142,7 @@ export default function TestSetupScreen({
                   ` · ${deck.cards.length - pool.length} skipped for a blank side`}
               </p>
             </div>
-            <img className="setup__mascot" src={trexArt} alt="" />
+            <Mascot name={dino} className="setup__mascot" />
           </div>
 
           <div className="panel stack">

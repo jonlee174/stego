@@ -320,7 +320,7 @@ function MatchingBlock({
               onChange={(e) => onChange({ ...value, [pair.cardId]: e.target.value })}
               aria-label={`Answer for ${pair.prompt}`}
             >
-              <option value="">—</option>
+              <option value="">Pick an answer</option>
               {question.choices.map((choice, i) => (
                 <option key={choice} value={choice}>
                   {LETTERS[i] ?? i + 1} · {choice}

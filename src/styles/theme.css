@@ -1,4 +1,4 @@
-/* Stego — palette sampled from the original 2021 assets.
+/* Stego palette, sampled from the original 2021 assets.
    #0A4E1D  title.png lettering        #5EA131  stegosaurus body
    #535C20  stegosaurus plates         #C7D42C  stegosaurus highlight
    #118844  t-rex                      #DCDCC8  moon mist (pygame background)
@@ -26,34 +26,146 @@
   font-display: swap;
 }
 
-:root {
-  --forest: #0a4e1d;
-  --myrtle: #21421e;
-  --hunter: #44693d;
-  --stego: #5ea131;
-  --plate: #535c20;
-  --flash: #c7d42c;
-  --trex: #118844;
-  --olive: #b8bc86;
-  --avocado: #a0a579;
-  --bone: #dcdcc8;
+/* ---------------------------------------------------------------- themes
 
-  --bg: var(--bone);
-  --bg-sunk: #d1d1ba;
-  --surface: #ecece0;
-  --surface-2: #e2e2d2;
-  --field: #f4f4ea;
-  --line: #b9bda0;
-  --line-soft: #c9ccb4;
+   Each palette below declares a light (--l-) and a dark (--d-) value for every
+   colour in the interface. The two mapping blocks after them pick a side, so a
+   new theme is one block rather than one per colour scheme.
 
-  --ink: var(--myrtle);
-  --ink-soft: #4d5a45;
-  --ink-faint: #6f7a63;
+   The --dino-* trio is this palette's body, detail and highlight tones. The
+   illustrations are recoloured ahead of time by tools/recolour-dinos.mjs, so
+   these now only drive borders, meters and gradients.                        */
+
+:root,
+[data-palette='green'] {
+  --l-bg: #dcdcc8;            --d-bg: #1a2318;
+  --l-bg-sunk: #d1d1ba;       --d-bg-sunk: #141b13;
+  --l-surface: #ecece0;      --d-surface: #243021;
+  --l-surface-2: #e2e2d2;    --d-surface-2: #2c3928;
+  --l-field: #f4f4ea;        --d-field: #2f3d2b;
+  --l-line: #b9bda0;         --d-line: #43563d;
+  --l-line-soft: #c9ccb4;    --d-line-soft: #38492f;
+  --l-ink: #21421e;          --d-ink: #e8ead6;
+  --l-ink-soft: #4d5a45;     --d-ink-soft: #c3caab;
+  --l-ink-faint: #6f7a63;    --d-ink-faint: #98a487;
+  --l-accent: #0a4e1d;       --d-accent: #6fb43a;
+  --l-accent-hover: #0d6626; --d-accent-hover: #7dc744;
+  --l-accent-rgb: 10, 78, 29;  --d-accent-rgb: 111, 180, 58;
+  --shadow-rgb: 33, 66, 30;
+
+  --dino-body: #5ea131;
+  --dino-detail: #535c20;
+  --dino-accent: #c7d42c;
+  --dino-line: #101010;
+}
+
+[data-palette='red'] {
+  --l-bg: #e7dad2;            --d-bg: #211412;
+  --l-bg-sunk: #dbcabf;       --d-bg-sunk: #180e0c;
+  --l-surface: #f2e8e2;      --d-surface: #2e1c18;
+  --l-surface-2: #ead9d0;    --d-surface-2: #3a241f;
+  --l-field: #faf3ef;        --d-field: #3d2620;
+  --l-line: #c8a695;         --d-line: #5a352c;
+  --l-line-soft: #d8bcae;    --d-line-soft: #4a2c25;
+  --l-ink: #3b1d14;          --d-ink: #f0ded6;
+  --l-ink-soft: #63382a;     --d-ink-soft: #d3b4a8;
+  --l-ink-faint: #8a5f4e;    --d-ink-faint: #a88778;
+  --l-accent: #9e3320;       --d-accent: #e0664a;
+  --l-accent-hover: #b93d27; --d-accent-hover: #ee785c;
+  --l-accent-rgb: 158, 51, 32;  --d-accent-rgb: 224, 102, 74;
+  --shadow-rgb: 74, 32, 20;
+
+  --dino-body: #c4432f;
+  --dino-detail: #7e2a1c;
+  --dino-accent: #f0a48c;
+  --dino-line: #101010;
+}
+
+[data-palette='blue'] {
+  --l-bg: #d7dee7;            --d-bg: #121a24;
+  --l-bg-sunk: #c8d2de;       --d-bg-sunk: #0d141c;
+  --l-surface: #e8eef4;      --d-surface: #1b2733;
+  --l-surface-2: #dae3ed;    --d-surface-2: #22303f;
+  --l-field: #f2f6fa;        --d-field: #243343;
+  --l-line: #9fb3c8;         --d-line: #34485c;
+  --l-line-soft: #b7c7d8;    --d-line-soft: #2b3c4d;
+  --l-ink: #14293f;          --d-ink: #dbe6f2;
+  --l-ink-soft: #2f4a68;     --d-ink-soft: #b0c4d8;
+  --l-ink-faint: #5b7590;    --d-ink-faint: #829ab3;
+  --l-accent: #1f5691;       --d-accent: #5b9fe0;
+  --l-accent-hover: #26669f; --d-accent-hover: #6fb0ee;
+  --l-accent-rgb: 31, 86, 145;  --d-accent-rgb: 91, 159, 224;
+  --shadow-rgb: 20, 41, 63;
+
+  --dino-body: #3b7bc4;
+  --dino-detail: #24507f;
+  --dino-accent: #9cc6ee;
+  --dino-line: #101010;
+}
+
+[data-palette='purple'] {
+  --l-bg: #ded8e8;            --d-bg: #191428;
+  --l-bg-sunk: #cfc7dd;       --d-bg-sunk: #120e1e;
+  --l-surface: #eee9f4;      --d-surface: #241d38;
+  --l-surface-2: #e2daee;    --d-surface-2: #2e2545;
+  --l-field: #f6f2fa;        --d-field: #302747;
+  --l-line: #b0a2c6;         --d-line: #463a63;
+  --l-line-soft: #c3b7d6;    --d-line-soft: #392f52;
+  --l-ink: #241640;          --d-ink: #e6dff5;
+  --l-ink-soft: #422f66;     --d-ink-soft: #c2b5dd;
+  --l-ink-faint: #6b5a8f;    --d-ink-faint: #9587b5;
+  --l-accent: #5a2f95;       --d-accent: #a37ae0;
+  --l-accent-hover: #6b39ab; --d-accent-hover: #b48cee;
+  --l-accent-rgb: 90, 47, 149;  --d-accent-rgb: 163, 122, 224;
+  --shadow-rgb: 36, 22, 64;
+
+  --dino-body: #7a4fb5;
+  --dino-detail: #4b2e73;
+  --dino-accent: #c3a7e6;
+  --dino-line: #101010;
+}
+
+[data-palette='pink'] {
+  --l-bg: #ecd9e2;            --d-bg: #22131b;
+  --l-bg-sunk: #ddc6d3;       --d-bg-sunk: #190d14;
+  --l-surface: #f7eaf0;      --d-surface: #301c26;
+  --l-surface-2: #f0dbe5;    --d-surface-2: #3c2430;
+  --l-field: #fcf4f7;        --d-field: #3e2632;
+  --l-line: #cca3b7;         --d-line: #5c3547;
+  --l-line-soft: #dcbccb;    --d-line-soft: #4b2b3a;
+  --l-ink: #3d1528;          --d-ink: #f5dde8;
+  --l-ink-soft: #66294a;     --d-ink-soft: #d9b2c5;
+  --l-ink-faint: #8f5473;    --d-ink-faint: #ad8395;
+  --l-accent: #9b2c60;       --d-accent: #e070a0;
+  --l-accent-hover: #b23670; --d-accent-hover: #ee82b0;
+  --l-accent-rgb: 155, 44, 96;  --d-accent-rgb: 224, 112, 160;
+  --shadow-rgb: 61, 21, 40;
+
+  --dino-body: #d45a8d;
+  --dino-detail: #8c3459;
+  --dino-accent: #f5b0cb;
+  --dino-line: #101010;
+}
+
+/* Light mapping, for the page and for any skin-scoped element. */
+:root,
+[data-palette] {
+  --bg: var(--l-bg);
+  --bg-sunk: var(--l-bg-sunk);
+  --surface: var(--l-surface);
+  --surface-2: var(--l-surface-2);
+  --field: var(--l-field);
+  --line: var(--l-line);
+  --line-soft: var(--l-line-soft);
+
+  --ink: var(--l-ink);
+  --ink-soft: var(--l-ink-soft);
+  --ink-faint: var(--l-ink-faint);
   --on-dark: #f1f2e4;
 
-  --accent: var(--forest);
-  --accent-hover: #0d6626;
-  --accent-quiet: rgba(10, 78, 29, 0.09);
+  --accent: var(--l-accent);
+  --accent-hover: var(--l-accent-hover);
+  --accent-quiet: rgba(var(--l-accent-rgb), 0.1);
 
   --good: #2f7a34;
   --good-bg: rgba(94, 161, 49, 0.16);
@@ -61,13 +173,19 @@
   --bad-bg: rgba(154, 52, 18, 0.12);
   --warn: #8a6d1f;
 
+  /* Decorative aliases kept so existing rules recolour with the skin. */
+  --stego: var(--dino-body);
+  --plate: var(--dino-detail);
+  --flash: var(--dino-accent);
+  --trex: var(--dino-body);
+
   --radius-sm: 8px;
   --radius: 14px;
   --radius-lg: 22px;
 
-  --shadow-sm: 0 1px 2px rgba(33, 66, 30, 0.14);
-  --shadow: 0 6px 18px rgba(33, 66, 30, 0.16);
-  --shadow-lg: 0 18px 44px rgba(33, 66, 30, 0.24);
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-rgb), 0.14);
+  --shadow: 0 6px 18px rgba(var(--shadow-rgb), 0.16);
+  --shadow-lg: 0 18px 44px rgba(var(--shadow-rgb), 0.24);
 
   --font-display: 'Anton', 'Avenir Next Condensed', 'Trebuchet MS', sans-serif;
   --font-body: 'Arvo', Georgia, 'Times New Roman', serif;
@@ -80,24 +198,25 @@
   color-scheme: light;
 }
 
+/* Dark mapping, applied by system preference or an explicit choice. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #1a2318;
-    --bg-sunk: #141b13;
-    --surface: #243021;
-    --surface-2: #2c3928;
-    --field: #2f3d2b;
-    --line: #43563d;
-    --line-soft: #38492f;
+  :root:not([data-theme='light']),
+  :root:not([data-theme='light']) [data-palette] {
+    --bg: var(--d-bg);
+    --bg-sunk: var(--d-bg-sunk);
+    --surface: var(--d-surface);
+    --surface-2: var(--d-surface-2);
+    --field: var(--d-field);
+    --line: var(--d-line);
+    --line-soft: var(--d-line-soft);
 
-    --ink: #e8ead6;
-    --ink-soft: #c3caab;
-    --ink-faint: #98a487;
-    --on-dark: #f1f2e4;
+    --ink: var(--d-ink);
+    --ink-soft: var(--d-ink-soft);
+    --ink-faint: var(--d-ink-faint);
 
-    --accent: #6fb43a;
-    --accent-hover: #7dc744;
-    --accent-quiet: rgba(111, 180, 58, 0.16);
+    --accent: var(--d-accent);
+    --accent-hover: var(--d-accent-hover);
+    --accent-quiet: rgba(var(--d-accent-rgb), 0.16);
 
     --good: #8cc94f;
     --good-bg: rgba(111, 180, 58, 0.18);
@@ -113,25 +232,23 @@
   }
 }
 
-/* Same tokens again for an explicit dark choice on a light system. */
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+:root[data-theme='dark'] [data-palette] {
+  --bg: var(--d-bg);
+  --bg-sunk: var(--d-bg-sunk);
+  --surface: var(--d-surface);
+  --surface-2: var(--d-surface-2);
+  --field: var(--d-field);
+  --line: var(--d-line);
+  --line-soft: var(--d-line-soft);
 
-  --bg: #1a2318;
-  --bg-sunk: #141b13;
-  --surface: #243021;
-  --surface-2: #2c3928;
-  --field: #2f3d2b;
-  --line: #43563d;
-  --line-soft: #38492f;
+  --ink: var(--d-ink);
+  --ink-soft: var(--d-ink-soft);
+  --ink-faint: var(--d-ink-faint);
 
-  --ink: #e8ead6;
-  --ink-soft: #c3caab;
-  --ink-faint: #98a487;
-  --on-dark: #f1f2e4;
-
-  --accent: #6fb43a;
-  --accent-hover: #7dc744;
-  --accent-quiet: rgba(111, 180, 58, 0.16);
+  --accent: var(--d-accent);
+  --accent-hover: var(--d-accent-hover);
+  --accent-quiet: rgba(var(--d-accent-rgb), 0.16);
 
   --good: #8cc94f;
   --good-bg: rgba(111, 180, 58, 0.18);
@@ -169,7 +286,7 @@ body {
 }
 
 /* macOS draws the close/minimise/zoom buttons over the top-left of the page in
-   `hiddenInset` mode, so the bar starts past them — but not in fullscreen,
+   `hiddenInset` mode, so the bar starts past them, but not in fullscreen,
    where the buttons are hidden. */
 body.has-traffic-lights .topbar {
   padding-left: 88px;

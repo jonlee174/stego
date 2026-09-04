@@ -6,8 +6,8 @@ import { IconCards, IconCheck, IconRestart, IconTrophy, IconX } from '../compone
 import { generateTest } from '../lib/testgen';
 import { gradeWritten, normalize, questionWeight } from '../lib/grading';
 import type { GradedQuestion, Test, TestConfig, TestResult } from '../types';
-import stegoArt from '../../assets/images/stego.png';
-import trexArt from '../../assets/images/trex.png';
+import { Mascot } from '../components/Dinos';
+import { useDino } from '../state/theme';
 
 export default function TestResultsScreen({
   nav,
@@ -21,6 +21,7 @@ export default function TestResultsScreen({
   onRetake: (test: Test, config: TestConfig) => void;
 }) {
   const deck = useDeck(result.test.deckId);
+  const [dino] = useDino();
   const percent = Math.round(result.percent);
 
   const byType = useMemo(() => {
@@ -49,7 +50,7 @@ export default function TestResultsScreen({
       <div className="content">
         <div className="wrap wrap--narrow stack">
           <div className={`score score--${band(percent)}`}>
-            <img className="score__art" src={percent >= 70 ? stegoArt : trexArt} alt="" />
+            <Mascot name={dino} className="score__art" />
             <div className="score__body">
               <p className="eyebrow">{result.test.deckName}</p>
               <p className="score__value">{percent}%</p>
@@ -141,13 +142,13 @@ function ReviewItem({ graded, number }: { graded: GradedQuestion; number: number
           <p className="review__prompt">{question.prompt}</p>
           <AnswerLine
             label="You wrote"
-            text={typeof given === 'string' && given.trim() ? given : '— blank —'}
+            text={typeof given === 'string' && given.trim() ? given : 'No answer'}
             ok={score >= 1}
           />
           {score >= 1 &&
             typeof given === 'string' &&
             gradeWritten(given, question.answer).fuzzy && (
-              <p className="hint">Close enough — a small typo was accepted.</p>
+              <p className="hint">Close enough. A small typo was accepted.</p>
             )}
           {score < 1 && <AnswerLine label="Answer" text={question.answer} ok />}
         </>
@@ -161,7 +162,7 @@ function ReviewItem({ graded, number }: { graded: GradedQuestion; number: number
           </p>
           <AnswerLine
             label="You said"
-            text={given === undefined ? '— blank —' : given ? 'True' : 'False'}
+            text={given === undefined ? 'No answer' : given ? 'True' : 'False'}
             ok={score >= 1}
           />
           {score < 1 && <AnswerLine label="Answer" text={question.answer ? 'True' : 'False'} ok />}
@@ -177,7 +178,7 @@ function ReviewItem({ graded, number }: { graded: GradedQuestion; number: number
             return (
               <li key={pair.cardId} className={ok ? 'review__pair is-ok' : 'review__pair is-off'}>
                 <span className="review__pair-prompt">{pair.prompt}</span>
-                <span className="review__pair-given">{pick || '— blank —'}</span>
+                <span className="review__pair-given">{pick || 'No answer'}</span>
                 {!ok && <span className="review__pair-answer">{pair.answer}</span>}
               </li>
             );
@@ -209,7 +210,7 @@ function band(percent: number): 'high' | 'mid' | 'low' {
 
 function verdict(percent: number): string {
   if (percent === 100) return 'Flawless. Museum quality.';
-  if (percent >= 85) return 'Strong footing — the herd is impressed.';
+  if (percent >= 85) return 'Strong footing. The herd is impressed.';
   if (percent >= 70) return 'Solid. A few plates still to grow.';
   if (percent >= 50) return 'Halfway out of the tar pit.';
   return 'Back to the dig site.';

@@ -14,13 +14,22 @@ export interface Deck {
   updatedAt: number;
 }
 
+/** Appearance choices, stored alongside the decks so they sync between devices. */
+export interface AppSettings {
+  /** Values are kept loose here so types.ts stays free of UI imports. */
+  dino?: string;
+  palette?: string;
+  mode?: 'auto' | 'light' | 'dark';
+  /** Written by the version that bundled dinosaur and colour into one choice. */
+  skin?: string;
+}
+
 /** Shape of the on-disk decks.json file. */
 export interface DeckFile {
   version: number;
   decks: Deck[];
+  settings?: AppSettings;
 }
-
-export type QuestionType = 'written' | 'truefalse' | 'matching';
 
 /** Which side of the card a question shows as the prompt. */
 export type Direction = 'front-to-back' | 'back-to-front' | 'mixed';
@@ -44,7 +53,7 @@ export interface TrueFalseQuestion {
   answer: boolean;
 }
 
-export interface MatchingPair {
+interface MatchingPair {
   cardId: string;
   prompt: string;
   answer: string;
@@ -85,7 +94,7 @@ export type ResponseMap = Record<string, string | boolean | Record<string, strin
 
 export interface GradedQuestion {
   question: Question;
-  /** 0..1 — matching questions can be partially right. */
+  /** 0..1, since matching questions can be partially right. */
   score: number;
   correct: boolean;
   given: string | boolean | Record<string, string> | undefined;

@@ -63,7 +63,7 @@ export default function DeckEditorScreen({ nav, deckId }: { nav: Nav; deckId?: s
       toast('Give the deck a title first', 'bad');
       return;
     }
-    // Blank rows are scaffolding, not cards — drop them on the way out.
+    // Blank rows are scaffolding, not cards, so drop them on the way out.
     const keep = cards
       .filter((c) => c.front.trim() !== '' || c.back.trim() !== '')
       .map((c) => ({ ...c, front: c.front.trim(), back: c.back.trim() }));
@@ -198,8 +198,9 @@ export default function DeckEditorScreen({ nav, deckId }: { nav: Nav; deckId?: s
           </button>
 
           <p className="hint">
-            Tip: separate interchangeable answers with a semicolon — <code>T. rex; Tyrannosaurus</code>{' '}
-            — and a written answer counts as correct if it matches either one.
+            Tip: separate interchangeable answers with a semicolon, like{' '}
+            <code>T. rex; Tyrannosaurus</code>. A written answer counts as correct if it matches
+            either one.
           </p>
         </div>
       </div>

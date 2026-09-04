@@ -23,7 +23,7 @@ export function acceptableAnswers(answer: string): string[] {
     .filter((part) => part.length > 0);
 }
 
-export function levenshtein(a: string, b: string): number {
+function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;

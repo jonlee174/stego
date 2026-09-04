@@ -3,6 +3,7 @@ import type { Nav } from '../App';
 import { useDecks } from '../state/decks';
 import { useToast } from '../components/Toast';
 import { ConfirmDialog, Dialog, EmptyState, TopBar } from '../components/ui';
+import { IconShare } from '../components/Icons';
 import {
   IconCards,
   IconCopy,
@@ -14,7 +15,8 @@ import {
   IconTrash,
   IconUpload,
 } from '../components/Icons';
-import { ExportCancelled, exportJson, pickJsonFile, timestampedName } from '../lib/transfer';
+import { ExportCancelled, pickJsonFile } from '../lib/transfer';
+import { canShare, saveDecksToFiles, shareDecks } from '../lib/share';
 import { usableCards } from '../lib/testgen';
 import type { Deck } from '../types';
 
@@ -30,6 +32,7 @@ export default function DeckListScreen({
   const [query, setQuery] = useState('');
   const [pendingDelete, setPendingDelete] = useState<Deck | null>(null);
   const [importText, setImportText] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -44,12 +47,24 @@ export default function DeckListScreen({
 
   const title = intent === 'study' ? 'Study a deck' : intent === 'test' ? 'Test yourself' : 'Your decks';
 
-  async function onExport() {
+  const exportTitle = decks.length === 1 ? decks[0].name : 'Stego decks';
+
+  async function onSaveToFiles() {
+    setExporting(false);
     try {
-      toast(await exportJson(timestampedName(), exportFile()));
+      toast(await saveDecksToFiles(exportTitle, exportFile()));
     } catch (err) {
       if (err instanceof ExportCancelled) return;
-      toast('Export failed', 'bad');
+      toast('Could not save the file', 'bad');
+    }
+  }
+
+  async function onShare() {
+    setExporting(false);
+    try {
+      await shareDecks(exportTitle, exportFile());
+    } catch {
+      // Dismissing the share sheet lands here too, so stay quiet about it.
     }
   }
 
@@ -81,7 +96,13 @@ export default function DeckListScreen({
               <IconUpload className="btn__icon" />
               <span className="only-wide">Import</span>
             </button>
-            <button className="btn btn--quiet btn--sm" onClick={onExport} title="Export decks">
+            <button
+              className="btn btn--quiet btn--sm"
+              // Off a phone there is no share sheet, so a chooser with one
+              // option would be pointless: just save.
+              onClick={() => (canShare() ? setExporting(true) : onSaveToFiles())}
+              title="Export decks"
+            >
               <IconDownload className="btn__icon" />
               <span className="only-wide">Export</span>
             </button>
@@ -147,7 +168,7 @@ export default function DeckListScreen({
           title={`Delete "${pendingDelete.name}"?`}
           body={`This removes ${pendingDelete.cards.length} card${
             pendingDelete.cards.length === 1 ? '' : 's'
-          }. Extinction is forever — there is no undo.`}
+          }. Extinction is forever, and there is no undo.`}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
             deleteDeck(pendingDelete.id);
@@ -155,6 +176,39 @@ export default function DeckListScreen({
             toast('Deck deleted');
           }}
         />
+      )}
+
+      {exporting && (
+        <Dialog
+          title="Export decks"
+          onClose={() => setExporting(false)}
+          footer={
+            <>
+              <span className="spacer" />
+              <button className="btn btn--quiet" onClick={() => setExporting(false)}>
+                Cancel
+              </button>
+            </>
+          }
+        >
+          <button className="btn btn--ghost btn--block export-choice" onClick={onSaveToFiles}>
+            <IconDownload className="btn__icon" />
+            <span>
+              <strong>Save to Files</strong>
+              <small>Keep a copy or back your decks up</small>
+            </span>
+          </button>
+
+          {canShare() && (
+            <button className="btn btn--ghost btn--block export-choice" onClick={onShare}>
+              <IconShare className="btn__icon" />
+              <span>
+                <strong>Share with others</strong>
+                <small>Send by Messages, Mail or AirDrop. Opens straight into their Stego.</small>
+              </span>
+            </button>
+          )}
+        </Dialog>
       )}
 
       {importText !== null && (

@@ -1,14 +1,14 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { cloud } from './cloud';
-import type { Deck, DeckFile } from '../types';
+import type { AppSettings, Deck, DeckFile } from '../types';
 
-export const DECKS_FILE = 'decks.json';
+const DECKS_FILE = 'decks.json';
 const LOCAL_KEY = 'stego.decks.json';
-export const FILE_VERSION = 1;
+const FILE_VERSION = 1;
 
 /** Bridge exposed by the Electron preload script. Absent everywhere else. */
-export interface StegoDesktopBridge {
+interface StegoDesktopBridge {
   readDecks(): Promise<string | null>;
   writeDecks(contents: string): Promise<void>;
   decksPath(): Promise<string>;
@@ -20,6 +20,8 @@ export interface StegoDesktopBridge {
   isSyncing(): Promise<boolean>;
   /** Fires with the file contents when another device changes the decks. */
   onDecksChanged(cb: (contents: string) => void): void;
+  /** Repaints the window frame so it matches the active theme. */
+  setWindowBackground?(color: string): Promise<void>;
 }
 
 declare global {
@@ -87,7 +89,7 @@ const nativeBackend: Backend = {
       const remote = await cloud.read(DECKS_FILE);
       if (remote !== null) return remote;
 
-      // Nothing in iCloud yet. Carry any local decks up now — the caller treats
+      // Nothing in iCloud yet. Carry any local decks up now, because the caller treats
       // whatever read() returns as already stored and skips the matching write,
       // so deferring this would leave the container empty forever.
       const local = await readLocal();
@@ -159,10 +161,6 @@ function backend(): Backend {
   return cached;
 }
 
-export function storageKind(): Backend['name'] {
-  return backend().name;
-}
-
 export function storageLocation(): Promise<string> {
   return backend().location();
 }
@@ -172,16 +170,16 @@ export function isSyncing(): Promise<boolean> {
 }
 
 /**
- * Notifies when the deck file changes outside this app — a push from iCloud on
+ * Notifies when the deck file changes outside this app: a push from iCloud on
  * the desktop, or coming back to the app after editing on another device.
  */
-export function watchDecks(onChange: (decks: Deck[]) => void): () => void {
+export function watchDecks(onChange: (decks: Deck[], raw: string) => void): () => void {
   let stopped = false;
 
   const deliver = (raw: string | null) => {
     if (stopped || !raw) return;
     try {
-      onChange(parseDeckFile(raw));
+      onChange(parseDeckFile(raw), raw);
     } catch {
       // A half-synced file will parse fine on the next notification.
     }
@@ -263,9 +261,29 @@ function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'deck';
 }
 
-export function serializeDecks(decks: Deck[]): string {
+export function serializeDecks(decks: Deck[], settings?: AppSettings | null): string {
   const file: DeckFile = { version: FILE_VERSION, decks };
+  // Appearance travels in the same file as the decks, so it syncs the same way.
+  if (settings) file.settings = settings;
   return JSON.stringify(file, null, 4);
+}
+
+/** Reads the appearance block, tolerating files written before it existed. */
+export function parseSettings(raw: string): AppSettings | null {
+  try {
+    const data: unknown = JSON.parse(raw);
+    const settings = (data as { settings?: unknown } | null)?.settings;
+    if (!settings || typeof settings !== 'object') return null;
+    const { dino, palette, mode, skin } = settings as Record<string, unknown>;
+    const out: AppSettings = {};
+    if (typeof dino === 'string') out.dino = dino;
+    if (typeof palette === 'string') out.palette = palette;
+    if (typeof skin === 'string') out.skin = skin;
+    if (mode === 'auto' || mode === 'light' || mode === 'dark') out.mode = mode;
+    return out.dino || out.palette || out.skin || out.mode ? out : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function loadDecks(): Promise<Deck[]> {
@@ -279,9 +297,19 @@ export async function loadDecks(): Promise<Deck[]> {
   }
 }
 
-export async function saveDecks(decks: Deck[]): Promise<void> {
+/** Appearance stored in the synced file, or null when it has none yet. */
+export async function loadSettings(): Promise<AppSettings | null> {
   try {
-    await backend().write(serializeDecks(decks));
+    const raw = await backend().read();
+    return raw ? parseSettings(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveDecks(decks: Deck[], settings?: AppSettings | null): Promise<void> {
+  try {
+    await backend().write(serializeDecks(decks, settings));
   } catch (err) {
     // A failed write must not take the UI down with it.
     console.error('Could not write decks.json', err);

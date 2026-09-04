@@ -1,31 +1,40 @@
-import { useEffect, useState } from 'react';
 import type { Nav } from '../App';
 import { useDecks } from '../state/decks';
-import { storageKind, storageLocation } from '../lib/storage';
 import { ThemeToggle } from '../components/ui';
+import { Mascot } from '../components/Dinos';
+import { IconSettings } from '../components/Icons';
+import { useDino } from '../state/theme';
 import { IconCards, IconPencil, IconQuiz } from '../components/Icons';
 import titleArt from '../../assets/images/title.png';
-import stegoArt from '../../assets/images/stego.png';
-import trexArt from '../../assets/images/trex.png';
 
 export default function Home({ nav }: { nav: Nav }) {
   const { decks } = useDecks();
-  const [where, setWhere] = useState('');
-
-  useEffect(() => {
-    // Purely informational — never let a storage hiccup break the home screen.
-    storageLocation().then(setWhere, () => setWhere(''));
-  }, []);
+  const [dino] = useDino();
 
   const cardTotal = decks.reduce((sum, d) => sum + d.cards.length, 0);
 
   return (
     <section className="screen home">
-      <ThemeToggle />
+      <div className="home__tools">
+        <button
+          className="btn btn--quiet btn--icon"
+          onClick={() => nav.go({ name: 'settings' })}
+          title="Settings"
+          aria-label="Settings"
+        >
+          <IconSettings className="btn__icon" />
+        </button>
+        <ThemeToggle />
+      </div>
       <div className="content">
         <div className="wrap home__inner">
           <header className="home__head">
-            <img className="home__title" src={titleArt} alt="Stego" />
+            <span
+              className="home__title"
+              role="img"
+              aria-label="Stego"
+              style={{ ['--wordmark' as string]: `url(${titleArt})` }}
+            />
           </header>
 
           <nav className="home__tiles">
@@ -51,7 +60,6 @@ export default function Home({ nav }: { nav: Nav }) {
               <IconQuiz className="tile__icon" />
               <span className="tile__label">Test</span>
               <span className="tile__sub">Write-in, true/false, matching</span>
-              <img className="tile__mascot" src={trexArt} alt="" />
             </button>
           </nav>
 
@@ -60,16 +68,11 @@ export default function Home({ nav }: { nav: Nav }) {
               <strong>{decks.length}</strong> {decks.length === 1 ? 'deck' : 'decks'} ·{' '}
               <strong>{cardTotal}</strong> {cardTotal === 1 ? 'card' : 'cards'}
             </button>
-            {where && (
-              <p className="home__where" title={where}>
-                Saved to {storageKind() === 'browser' ? where : where.replace(/^file:\/\//, '')}
-              </p>
-            )}
           </footer>
         </div>
       </div>
 
-      <img className="home__stego" src={stegoArt} alt="" />
+      <Mascot name={dino} className="home__stego" />
     </section>
   );
 }

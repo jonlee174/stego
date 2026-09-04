@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { IconAuto, IconChevronLeft, IconMoon, IconSun } from './Icons';
-import { useTheme, type ThemePref } from '../state/theme';
-import stegoArt from '../../assets/images/stego.png';
+import { useDino, useTheme, type ThemePref } from '../state/theme';
+import { Mascot } from './Dinos';
 
 export function TopBar({
   title,
@@ -269,9 +269,10 @@ export function EmptyState({
   body: string;
   action?: ReactNode;
 }) {
+  const [dino] = useDino();
   return (
     <div className="empty">
-      <img className="empty__art" src={stegoArt} alt="" />
+      <Mascot name={dino} className="empty__art" />
       <div>
         <p className="empty__title">{title}</p>
         <p className="muted">{body}</p>

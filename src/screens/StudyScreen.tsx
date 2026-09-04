@@ -188,7 +188,7 @@ export default function StudyScreen({ nav, deckId }: { nav: Nav; deckId: string 
             }}
             role="button"
             tabIndex={0}
-            aria-label="Flashcard — click to flip"
+            aria-label="Flashcard, click to flip"
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();

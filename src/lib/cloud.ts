@@ -2,10 +2,10 @@ import { registerPlugin } from '@capacitor/core';
 
 /**
  * Bridge to the small Swift plugin in `ios/App/App/StegoCloud.swift`, which is
- * the only way to reach the app's iCloud container — Capacitor's Filesystem
+ * the only way to reach the app's iCloud container, since Capacitor's Filesystem
  * plugin can see local storage but not the ubiquity container.
  */
-export interface StegoCloudPlugin {
+interface StegoCloudPlugin {
   /** Whether an iCloud container is provisioned and the user is signed in. */
   available(): Promise<{ available: boolean }>;
   read(options: { path: string }): Promise<{ contents: string | null }>;

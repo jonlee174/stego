@@ -15,4 +15,5 @@ contextBridge.exposeInMainWorld('stegoDesktop', {
   onDecksChanged: (cb) => {
     ipcRenderer.on('decks:changed', (_event, contents) => cb(contents));
   },
+  setWindowBackground: (color) => ipcRenderer.invoke('window:background', color),
 });

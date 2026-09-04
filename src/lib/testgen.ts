@@ -104,7 +104,7 @@ export function defaultConfig(deck: Deck): TestConfig {
   };
 }
 
-export interface GenerationIssue {
+interface GenerationIssue {
   kind: 'empty-deck' | 'no-questions' | 'truefalse-needs-two';
   message: string;
 }
@@ -206,7 +206,7 @@ export function generateTest(deck: Deck, config: TestConfig, rand: () => number 
 
   // Matching first: it is the pickiest about which cards it can use.
   for (let i = 0; i < config.matching; i++) {
-    // One orientation per block — a block of mixed directions is unsolvable.
+    // One orientation per block, because a block of mixed directions is unsolvable.
     const flipped =
       config.direction === 'back-to-front' || (config.direction === 'mixed' && rand() < 0.5);
     const cards = deal.takeDistinct(Math.min(groupSize, pool.length), (c) =>

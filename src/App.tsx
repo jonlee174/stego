@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Home from './screens/Home';
 import DeckListScreen from './screens/DeckListScreen';
 import DeckEditorScreen from './screens/DeckEditorScreen';
@@ -6,7 +6,9 @@ import StudyScreen from './screens/StudyScreen';
 import TestSetupScreen from './screens/TestSetupScreen';
 import TestRunScreen from './screens/TestRunScreen';
 import TestResultsScreen from './screens/TestResultsScreen';
+import SettingsScreen from './screens/SettingsScreen';
 import { useDecks } from './state/decks';
+import { useToast } from './components/Toast';
 import type { Test, TestConfig, TestResult } from './types';
 
 export type Route =
@@ -16,7 +18,8 @@ export type Route =
   | { name: 'study'; deckId: string }
   | { name: 'testSetup'; deckId: string }
   | { name: 'testRun' }
-  | { name: 'testResults' };
+  | { name: 'testResults' }
+  | { name: 'settings' };
 
 export interface Nav {
   go(route: Route): void;
@@ -24,7 +27,8 @@ export interface Nav {
 }
 
 export default function App() {
-  const { ready } = useDecks();
+  const { ready, onDecksReceived } = useDecks();
+  const toast = useToast();
   const [stack, setStack] = useState<Route[]>([{ name: 'home' }]);
   const [test, setTest] = useState<Test | null>(null);
   const [result, setResult] = useState<TestResult | null>(null);
@@ -41,6 +45,14 @@ export default function App() {
   const back = useCallback(() => {
     setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
   }, []);
+
+  useEffect(() => {
+    onDecksReceived((names) => {
+      const label = names.length === 1 ? `"${names[0]}"` : `${names.length} decks`;
+      toast(`Added ${label} to your decks`);
+      go({ name: 'decks' });
+    });
+  }, [go, onDecksReceived, toast]);
 
   const nav: Nav = { go, back };
   const route = stack[stack.length - 1];
@@ -80,6 +92,7 @@ export default function App() {
   return (
     <div className="app-shell">
       {route.name === 'home' && <Home nav={nav} />}
+      {route.name === 'settings' && <SettingsScreen nav={nav} />}
       {route.name === 'decks' && <DeckListScreen nav={nav} intent={route.intent} />}
       {route.name === 'editor' && <DeckEditorScreen nav={nav} deckId={route.deckId} />}
       {route.name === 'study' && <StudyScreen nav={nav} deckId={route.deckId} />}
