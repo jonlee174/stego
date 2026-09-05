@@ -3,7 +3,7 @@ import { usePalette } from '../state/theme';
 
 /**
  * Every dinosaur exists once per palette, generated from the source drawings by
- * `tools/recolour-dinos.mjs`. Recolouring ahead of time rather than at runtime
+ * `tools/recolor-dinos.mjs`. Recoloring ahead of time rather than at runtime
  * keeps the shading and the black outlines intact, which a CSS filter or mask
  * could not do.
  *
@@ -77,14 +77,14 @@ const ART: Record<DinoName, Record<Palette, string>> = {
   },
 };
 
-/** The artwork for one dinosaur in one colour. */
+/** The artwork for one dinosaur in one color. */
 function dinoArt(name: DinoName, palette: Palette): string {
   return ART[name]?.[palette] ?? ART.stegosaurus.green;
 }
 
 /**
- * A dinosaur in a colour you name. The settings picker uses this to show every
- * animal in the same neutral colour, so that choice is only about the shape.
+ * A dinosaur in a color you name. The settings picker uses this to show every
+ * animal in the same neutral color, so that choice is only about the shape.
  */
 export function Dino({
   name,
@@ -98,7 +98,7 @@ export function Dino({
   return <img className={className} src={dinoArt(name, palette)} alt="" />;
 }
 
-/** The mascot, in whichever colour the app is currently wearing. */
+/** The mascot, in whichever color the app is currently wearing. */
 export function Mascot({ name, className }: { name: DinoName; className?: string }) {
   const [palette] = usePalette();
   return <img className={className} src={dinoArt(name, palette)} alt="" />;

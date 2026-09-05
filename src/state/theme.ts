@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 export type ThemePref = 'auto' | 'light' | 'dark';
 
-/** Which dinosaur appears as the mascot. Independent of the colour. */
+/** Which dinosaur appears as the mascot. Independent of the color. */
 export type DinoName =
   | 'stegosaurus'
   | 'velociraptor'
@@ -10,7 +10,7 @@ export type DinoName =
   | 'tyrannosaurus'
   | 'triceratops';
 
-/** Which colour the whole interface takes. Independent of the dinosaur. */
+/** Which color the whole interface takes. Independent of the dinosaur. */
 export type Palette = 'green' | 'red' | 'blue' | 'purple' | 'pink';
 
 export const DINOS: { value: DinoName; label: string }[] = [
@@ -36,7 +36,7 @@ const DEFAULT_DINO: DinoName = 'stegosaurus';
 const MODE_KEY = 'stego.theme';
 const DINO_KEY = 'stego.dino';
 const PALETTE_KEY = 'stego.palette';
-/** Written by versions that bundled the dinosaur and colour into one choice. */
+/** Written by versions that bundled the dinosaur and color into one choice. */
 const LEGACY_SKIN_KEY = 'stego.skin';
 
 /** Old single-choice values map onto the pair they used to imply. */
@@ -93,7 +93,7 @@ function applyPalette(palette: Palette) {
 }
 
 /**
- * The page is not the only thing that shows a colour. The browser status bar and
+ * The page is not the only thing that shows a color. The browser status bar and
  * the desktop window frame paint before or behind it, so both are told the
  * active background. Read from the body rather than the custom property, since
  * this returns a resolved rgb() value.
@@ -187,7 +187,7 @@ export function applyStoredTheme() {
   applyPalette(readPalette());
 }
 
-/** Called once the page has painted, when the body colour is readable. */
+/** Called once the page has painted, when the body color is readable. */
 export function syncSystemChrome() {
   syncChrome();
 }

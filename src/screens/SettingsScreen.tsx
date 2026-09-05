@@ -4,7 +4,6 @@ import { TopBar, Segmented } from '../components/ui';
 import { Dino } from '../components/Dinos';
 import { IconCheck } from '../components/Icons';
 import {
-  DEFAULT_PALETTE,
   DINOS,
   PALETTES,
   useDino,
@@ -37,11 +36,11 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
               <span className="panel__title">Dinosaur</span>
             </div>
             <p className="hint">
-              Choose your mascot. It takes on whichever colour you pick below.
+              Choose your mascot. It wears whichever color you pick below.
             </p>
 
-            {/* Every option is drawn in the default colour, so the choice here
-                is only about the animal. */}
+            {/* Every option wears the color that is currently active, so the
+                picker previews exactly what you will get. */}
             <ul className="dino-grid">
               {DINOS.map((option) => (
                 <li key={option.value}>
@@ -51,7 +50,7 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
                     aria-pressed={option.value === dino}
                     onClick={() => chooseDino(option.value)}
                   >
-                    <Dino name={option.value} palette={DEFAULT_PALETTE} className="pick__art" />
+                    <Dino name={option.value} palette={palette} className="pick__art" />
                     <span className="pick__name">{option.label}</span>
                     {option.value === dino && (
                       <span className="pick__tick">
@@ -66,16 +65,16 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
 
           <div className="panel stack">
             <div className="panel__head">
-              <span className="panel__title">Colour</span>
+              <span className="panel__title">Color</span>
             </div>
             <p className="hint">Sets the whole app, in both light and dark.</p>
 
-            <ul className="colour-grid">
+            <ul className="color-grid">
               {PALETTES.map((option) => (
                 <li key={option.value}>
                   <button
                     type="button"
-                    className={option.value === palette ? 'pick pick--colour is-picked' : 'pick pick--colour'}
+                    className={option.value === palette ? 'pick pick--color is-picked' : 'pick pick--color'}
                     data-palette={option.value}
                     aria-pressed={option.value === palette}
                     aria-label={option.label}

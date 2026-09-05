@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fromLegacySkin, isDino, isPalette } from '../src/state/theme';
 
 /**
- * The dinosaur and the colour used to be one choice. Anyone upgrading has that
+ * The dinosaur and the color used to be one choice. Anyone upgrading has that
  * older value in storage and in their synced file, so it has to keep resolving.
  */
 describe('legacy skin migration', () => {
@@ -12,7 +12,7 @@ describe('legacy skin migration', () => {
     expect(fromLegacySkin('stegosaurus')).toEqual({ dino: 'stegosaurus', palette: 'green' });
   });
 
-  it('ignores anything it does not recognise', () => {
+  it('ignores anything it does not recognize', () => {
     expect(fromLegacySkin('pterodactyl')).toBeNull();
     expect(fromLegacySkin(undefined)).toBeNull();
     expect(fromLegacySkin(42)).toBeNull();

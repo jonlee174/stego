@@ -67,7 +67,7 @@ describe('appearance settings in the deck file', () => {
     cards: [{ id: 'c1', front: 'a', back: 'b' }],
   };
 
-  it('round-trips the dinosaur, colour and mode alongside the decks', () => {
+  it('round-trips the dinosaur, color and mode alongside the decks', () => {
     const raw = serializeDecks([deck], { dino: 'triceratops', palette: 'blue', mode: 'dark' });
     expect(parseSettings(raw)).toEqual({ dino: 'triceratops', palette: 'blue', mode: 'dark' });
     // The decks still parse exactly as before.
@@ -91,7 +91,7 @@ describe('appearance settings in the deck file', () => {
     expect(parseSettings('not json')).toBeNull();
   });
 
-  it('ignores a mode it does not recognise', () => {
+  it('ignores a mode it does not recognize', () => {
     expect(parseSettings('{"settings":{"mode":"sepia","dino":"velociraptor"}}')).toEqual({
       dino: 'velociraptor',
     });

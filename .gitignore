@@ -30,6 +30,7 @@ ios/App/App/*.entitlements.bak
 .vscode/
 .idea/
 .DS_Store
+AGENTS.md
 
 __pycache__/
 *.exe

@@ -75,8 +75,8 @@
     display: flex;
   }
 
-  /* `auto` on all four sides: the top/bottom pair centres it vertically, and
-     the left/right pair preserves the horizontal centring `.wrap` sets up.
+  /* `auto` on all four sides: the top/bottom pair centers it vertically, and
+     the left/right pair preserves the horizontal centering `.wrap` sets up.
      Writing `auto 0` here zeroes the side margins and pins the column left. */
   .home__inner {
     margin: auto;
@@ -90,7 +90,7 @@
   text-align: center;
 }
 
-/* The wordmark is a flat single-colour shape, so it is painted as a mask fill
+/* The wordmark is a flat single-color shape, so it is painted as a mask fill
    rather than an image. Same letterforms, but it takes the theme's accent in
    both light and dark instead of being locked to the original green. */
 .home__title {
@@ -1103,7 +1103,7 @@ code {
 }
 
 .dino-grid,
-.colour-grid {
+.color-grid {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1115,7 +1115,7 @@ code {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
-.colour-grid {
+.color-grid {
   grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
 }
 
@@ -1161,7 +1161,7 @@ code {
   letter-spacing: 0.03em;
 }
 
-/* The swatch shows the theme itself: page colour behind, accent in front. */
+/* The swatch shows the theme itself: page color behind, accent in front. */
 .pick__swatch {
   width: 100%;
   height: 46px;
@@ -1170,7 +1170,7 @@ code {
   background: linear-gradient(135deg, var(--bg) 0 50%, var(--accent) 50% 100%);
 }
 
-.pick--colour .pick__swatch {
+.pick--color .pick__swatch {
   margin-bottom: 2px;
 }
 

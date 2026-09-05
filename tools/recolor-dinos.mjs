@@ -1,12 +1,12 @@
 /**
- * Generates a colour variant of each dinosaur illustration for every palette.
+ * Generates a color variant of each dinosaur illustration for every palette.
  *
- * The source art is flat-shaded: a black outline, one body colour, and a couple
- * of lighter and darker shades. Recolouring keeps each pixel's lightness and
+ * The source art is flat-shaded: a black outline, one body color, and a couple
+ * of lighter and darker shades. Recoloring keeps each pixel's lightness and
  * only moves its hue and saturation, so the shading survives. Outlines, teeth
  * and eyes have almost no saturation and are left untouched.
  *
- * Run with:  node tools/recolour-dinos.mjs
+ * Run with:  node tools/recolor-dinos.mjs
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,7 +15,7 @@ import zlib from 'node:zlib';
 const IMAGES = path.join('assets', 'images');
 const OUT_DIR = path.join(IMAGES, 'themed');
 
-/** Mid-tone body colour of each palette, matching --dino-body in theme.css. */
+/** Mid-tone body color of each palette, matching --dino-body in theme.css. */
 const PALETTES = {
   green: '#5ea131',
   red: '#c4432f',
@@ -24,7 +24,7 @@ const PALETTES = {
   pink: '#d45a8d',
 };
 
-/** Source file and the body colour the recolour is measured against. */
+/** Source file and the body color the recolor is measured against. */
 const DINOS = {
   stegosaurus: { file: 'stego.png', base: '#5ea131' },
   velociraptor: { file: 'velociraptor.png', base: '#fe860a' },
@@ -125,7 +125,7 @@ function encodeRGBA(w, h, data) {
   ]);
 }
 
-// ----------------------------------------------------------------- colour
+// ----------------------------------------------------------------- color
 
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
@@ -170,7 +170,7 @@ function parseHex(hex) {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-function recolour(img, baseHex, targetHex) {
+function recolor(img, baseHex, targetHex) {
   const [, baseS, baseL] = rgbToHsl(...parseHex(baseHex));
   const [targetH, targetS, targetL] = rgbToHsl(...parseHex(targetHex));
   // Sources differ in weight: the raptor is vivid, the brachiosaurus a pale
@@ -193,7 +193,7 @@ function recolour(img, baseHex, targetHex) {
     }
 
     // Keep the pixel's own lightness so highlights and shadows survive, and
-    // scale saturation by how saturated it was relative to the body colour.
+    // scale saturation by how saturated it was relative to the body color.
     const s2 = Math.max(0, Math.min(1, targetS * (s / baseS)));
     const l2 = Math.max(0.06, Math.min(0.96, l + shiftL));
     const [nr, ng, nb] = hslToRgb(targetH, s2, l2);
@@ -213,10 +213,10 @@ for (const [dino, { file, base }] of Object.entries(DINOS)) {
     const dest = path.join(OUT_DIR, `${dino}-${palette}.png`);
     if (dino === 'stegosaurus' && palette === 'green') {
       // Copied rather than regenerated so the original drawing is preserved
-      // byte for byte in its own colour.
+      // byte for byte in its own color.
       fs.copyFileSync(path.join(IMAGES, file), dest);
     } else {
-      fs.writeFileSync(dest, encodeRGBA(img.w, img.h, recolour(img, base, target)));
+      fs.writeFileSync(dest, encodeRGBA(img.w, img.h, recolor(img, base, target)));
     }
     written++;
   }

@@ -6,7 +6,7 @@
    #21421E  myrtle                     #A0A579  aged avocado                  */
 
 /* Both faces are SIL Open Font License, which permits embedding in a
-   distributed app. Licences ship alongside them in assets/fonts/.
+   distributed app. Licenses ship alongside them in assets/fonts/.
    Anton stands in for the old display face; Arvo for Rockwell. */
 @font-face {
   font-family: 'Anton';
@@ -29,11 +29,11 @@
 /* ---------------------------------------------------------------- themes
 
    Each palette below declares a light (--l-) and a dark (--d-) value for every
-   colour in the interface. The two mapping blocks after them pick a side, so a
-   new theme is one block rather than one per colour scheme.
+   color in the interface. The two mapping blocks after them pick a side, so a
+   new theme is one block rather than one per color scheme.
 
    The --dino-* trio is this palette's body, detail and highlight tones. The
-   illustrations are recoloured ahead of time by tools/recolour-dinos.mjs, so
+   illustrations are recolored ahead of time by tools/recolor-dinos.mjs, so
    these now only drive borders, meters and gradients.                        */
 
 :root,
@@ -173,7 +173,7 @@
   --bad-bg: rgba(154, 52, 18, 0.12);
   --warn: #8a6d1f;
 
-  /* Decorative aliases kept so existing rules recolour with the skin. */
+  /* Decorative aliases kept so existing rules recolor with the skin. */
   --stego: var(--dino-body);
   --plate: var(--dino-detail);
   --flash: var(--dino-accent);

@@ -26,6 +26,9 @@ import {
   setDino,
   setMode,
   setPalette,
+  useDino,
+  usePalette,
+  useTheme,
 } from './theme';
 import { makeId } from '../lib/random';
 import { starterDeck } from './starter';
@@ -90,6 +93,11 @@ export function DecksProvider({ children }: { children: ReactNode }) {
   /** Set by the app shell so an arriving deck can be announced. */
   const received = useRef<((names: string[]) => void) | null>(null);
 
+  // Subscribing here is what makes an appearance change trigger the write effect below. Without it the choice lived only in memory and the next read of the file put the previous theme straight back.
+  const [dino] = useDino();
+  const [palette] = usePalette();
+  const [mode] = useTheme();
+
   useEffect(() => {
     let cancelled = false;
     void loadSettings().then((remote) => {
@@ -117,7 +125,7 @@ export function DecksProvider({ children }: { children: ReactNode }) {
     if (serialized === lastSaved.current) return;
     lastSaved.current = serialized;
     void saveDecks(decks, appearance());
-  }, [decks, ready]);
+  }, [decks, ready, dino, palette, mode]);
 
   // A deck someone sent, opened from Messages, Mail or Files. Merged rather
   // than replacing anything, so an incoming file can never cost you a deck.
@@ -144,6 +152,7 @@ export function DecksProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     return watchDecks((incoming, raw) => {
+      if (raw === lastSaved.current) return;
       adopt(raw);
       const serialized = serializeDecks(incoming, appearance());
       if (serialized === lastSaved.current) return;

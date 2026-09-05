@@ -20,7 +20,7 @@ export interface AppSettings {
   dino?: string;
   palette?: string;
   mode?: 'auto' | 'light' | 'dark';
-  /** Written by the version that bundled dinosaur and colour into one choice. */
+  /** Written by the version that bundled dinosaur and color into one choice. */
   skin?: string;
 }
 

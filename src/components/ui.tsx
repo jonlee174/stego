@@ -38,7 +38,7 @@ export function ThemeToggle() {
 
   return (
     <div className="theme-toggle">
-      <div className="segmented" role="group" aria-label="Colour theme">
+      <div className="segmented" role="group" aria-label="Color theme">
         {options.map((opt) => (
           <button
             key={opt.value}
