@@ -50,6 +50,12 @@
 .home {
   position: relative;
   overflow: hidden;
+  /* The app shell insets its bottom for the home indicator, which would leave
+     the mascot standing on a band of empty background. Reach back through that
+     inset and re-add it as padding, so the flow content still clears the
+     indicator but the clip region runs to the true bottom of the screen. */
+  margin-bottom: calc(-1 * var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
 }
 
 .home__inner {
@@ -86,6 +92,18 @@
   }
 }
 
+/* A phone in landscape is barely taller than the menu itself. Tighten the
+   column so the whole home screen still fits without scrolling, and take back
+   the top inset the wide layout drops, or the wordmark runs under the floating
+   settings and theme controls. */
+@media (max-height: 500px) and (min-width: 720px) {
+  .home__inner {
+    gap: 14px;
+    padding-top: calc(44px + var(--safe-top));
+    padding-bottom: 0;
+  }
+}
+
 .home__head {
   text-align: center;
 }
@@ -107,6 +125,13 @@
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
   mask-position: center;
+}
+
+/* After the base rule, so the media query actually wins. */
+@media (max-height: 500px) and (min-width: 720px) {
+  .home__title {
+    width: min(280px, 46%);
+  }
 }
 
 .home__tiles {
@@ -182,6 +207,23 @@
   font-size: 0.88rem;
 }
 
+/* Sits after the base tile rules on purpose: a media query carries no
+   specificity of its own, so an earlier block would simply lose. */
+@media (max-height: 500px) and (min-width: 720px) {
+  .tile {
+    min-height: 0;
+    padding: 12px 18px;
+  }
+
+  .tile__icon {
+    margin-bottom: 0;
+  }
+
+  .tile__label {
+    font-size: 1.2rem;
+  }
+}
+
 .home__foot {
   text-align: center;
   display: flex;
@@ -208,8 +250,14 @@
 .home__stego {
   position: absolute;
   right: 14px;
-  bottom: -14px;
-  width: min(210px, 34vw);
+  /* Standing on the bottom edge, feet included. A negative offset here clipped
+     them against the overflow above. */
+  bottom: 0;
+  display: block;
+  /* Bounded by the short side as well as the wide one. On a phone in landscape
+     34vw alone let the mascot grow tall enough to sit over the menu tiles, and
+     the vh term only binds on viewports short enough for that to happen. */
+  width: min(210px, 34vw, 24vh);
   opacity: 0.5;
   pointer-events: none;
   user-select: none;
@@ -505,6 +553,12 @@ code {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
+}
+
+/* Outside the nav row there is nothing to share space with, and the flex
+   growth above would otherwise stretch the dots down the whole column. */
+.study__dots--own-row {
+  flex: 0 0 auto;
 }
 
 .study__dot {
@@ -1225,4 +1279,40 @@ code {
   font-size: 0.78rem;
   line-height: 1.35;
   white-space: normal;
+}
+
+/* Missed on the left, known on the right. */
+.study__verdict {
+  flex: 1;
+  min-width: 84px;
+}
+
+.study__verdict--again {
+  --btn-bg: var(--bad);
+}
+
+.study__verdict--good {
+  --btn-bg: var(--accent);
+}
+
+/* Fired once a dynamic run clears the whole deck. Sits over everything and
+   takes no clicks, so the summary underneath stays usable. */
+.confetti {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 60;
+}
+
+/* Shown on a card that keeps being missed. */
+.flashcard__leech {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 0.7rem;
+  color: var(--bad);
+  max-width: 45%;
+  text-align: right;
 }

@@ -10,6 +10,8 @@ interface StegoCloudPlugin {
   available(): Promise<{ available: boolean }>;
   read(options: { path: string }): Promise<{ contents: string | null }>;
   write(options: { path: string; contents: string }): Promise<void>;
+  /** Reads a security scoped file handed to the app from elsewhere. */
+  readIncoming(options: { url: string }): Promise<{ contents: string | null }>;
 }
 
 const plugin = registerPlugin<StegoCloudPlugin>('StegoCloud');
@@ -61,4 +63,13 @@ function reset(): void {
   cached = null;
 }
 
-export const cloud = { available, read, write, reset };
+/** Reads a file another app handed us, claiming security scoped access first. */
+async function readIncoming(url: string): Promise<string | null> {
+  try {
+    return (await plugin.readIncoming({ url })).contents ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export const cloud = { available, read, write, reset, readIncoming };

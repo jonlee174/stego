@@ -7,17 +7,20 @@ import { IconShare } from '../components/Icons';
 import {
   IconCards,
   IconCopy,
+  IconRestart,
   IconDownload,
   IconPencil,
   IconPlus,
   IconQuiz,
   IconSearch,
+  IconTarget,
   IconTrash,
   IconUpload,
 } from '../components/Icons';
 import { ExportCancelled, pickJsonFile } from '../lib/transfer';
 import { canShare, saveDecksToFiles, shareDecks } from '../lib/share';
 import { usableCards } from '../lib/testgen';
+import { dueCount } from '../lib/scheduler';
 import type { Deck } from '../types';
 
 export default function DeckListScreen({
@@ -148,7 +151,9 @@ export default function DeckListScreen({
                   key={deck.id}
                   deck={deck}
                   intent={intent}
-                  onStudy={() => nav.go({ name: 'study', deckId: deck.id })}
+                  onStudy={() => nav.go({ name: 'study', deckId: deck.id, mode: 'all' })}
+                  onReview={() => nav.go({ name: 'study', deckId: deck.id, mode: 'due' })}
+                  onDynamic={() => nav.go({ name: 'study', deckId: deck.id, mode: 'dynamic' })}
                   onTest={() => nav.go({ name: 'testSetup', deckId: deck.id })}
                   onEdit={() => nav.go({ name: 'editor', deckId: deck.id })}
                   onDuplicate={() => {
@@ -243,6 +248,8 @@ function DeckTile({
   deck,
   intent,
   onStudy,
+  onReview,
+  onDynamic,
   onTest,
   onEdit,
   onDuplicate,
@@ -251,12 +258,15 @@ function DeckTile({
   deck: Deck;
   intent?: 'study' | 'test';
   onStudy: () => void;
+  onReview: () => void;
+  onDynamic: () => void;
   onTest: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
   const testable = usableCards(deck).length;
+  const due = dueCount(deck.cards);
   const primary = intent === 'test' ? onTest : onStudy;
 
   return (
@@ -268,6 +278,7 @@ function DeckTile({
           <span className="chip">
             {deck.cards.length} {deck.cards.length === 1 ? 'card' : 'cards'}
           </span>
+          {due > 0 && <span className="chip chip--good">{due} due</span>}
           {testable < deck.cards.length && (
             <span className="chip chip--bad">{deck.cards.length - testable} incomplete</span>
           )}
@@ -282,6 +293,19 @@ function DeckTile({
         >
           <IconCards className="btn__icon" />
           Study
+        </button>
+        <button className="btn btn--ghost btn--sm" onClick={onReview} disabled={due === 0}>
+          <IconRestart className="btn__icon" />
+          Review{due > 0 ? ` ${due}` : ''}
+        </button>
+        <button
+          className="btn btn--ghost btn--sm"
+          onClick={onDynamic}
+          disabled={deck.cards.length === 0}
+          title="Repeat the cards you miss until none are left"
+        >
+          <IconTarget className="btn__icon" />
+          Dynamic
         </button>
         <button className="btn btn--ghost btn--sm" onClick={onTest} disabled={testable === 0}>
           <IconQuiz className="btn__icon" />

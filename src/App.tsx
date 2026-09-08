@@ -9,13 +9,13 @@ import TestResultsScreen from './screens/TestResultsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import { useDecks } from './state/decks';
 import { useToast } from './components/Toast';
-import type { Test, TestConfig, TestResult } from './types';
+import type { StudyMode, Test, TestConfig, TestResult } from './types';
 
 export type Route =
   | { name: 'home' }
   | { name: 'decks'; intent?: 'study' | 'test' }
   | { name: 'editor'; deckId?: string }
-  | { name: 'study'; deckId: string }
+  | { name: 'study'; deckId: string; mode?: StudyMode }
   | { name: 'testSetup'; deckId: string }
   | { name: 'testRun' }
   | { name: 'testResults' }
@@ -95,7 +95,7 @@ export default function App() {
       {route.name === 'settings' && <SettingsScreen nav={nav} />}
       {route.name === 'decks' && <DeckListScreen nav={nav} intent={route.intent} />}
       {route.name === 'editor' && <DeckEditorScreen nav={nav} deckId={route.deckId} />}
-      {route.name === 'study' && <StudyScreen nav={nav} deckId={route.deckId} />}
+      {route.name === 'study' && <StudyScreen nav={nav} deckId={route.deckId} mode={route.mode} />}
       {route.name === 'testSetup' && (
         <TestSetupScreen nav={nav} deckId={route.deckId} initialConfig={lastConfig} onStart={startTest} />
       )}

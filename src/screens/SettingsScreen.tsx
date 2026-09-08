@@ -11,7 +11,7 @@ import {
   useTheme,
   type ThemePref,
 } from '../state/theme';
-import { isSyncing, storageLocation } from '../lib/storage';
+import { isSyncing, storageKind, storageLocation } from '../lib/storage';
 
 export default function SettingsScreen({ nav }: { nav: Nav }) {
   const [dino, chooseDino] = useDino();
@@ -115,7 +115,9 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
             <p className="hint">
               {syncing
                 ? 'Your decks and these choices sync across your devices through iCloud.'
-                : 'Your decks are saved on this device. Sign in to iCloud to sync them.'}
+                : storageKind() === 'desktop'
+                  ? 'Your decks are saved on this Mac. To move a deck between devices, export it here or send it from your phone.'
+                  : 'Your decks are saved on this device. Sync needs iCloud Drive turned on in Settings.'}
             </p>
             {where && <p className="hint settings__path">{where}</p>}
           </div>

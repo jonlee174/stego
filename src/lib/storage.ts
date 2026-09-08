@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { cloud } from './cloud';
-import type { AppSettings, Deck, DeckFile } from '../types';
+import type { AppSettings, Card, Deck, DeckFile } from '../types';
 
 const DECKS_FILE = 'decks.json';
 const LOCAL_KEY = 'stego.decks.json';
@@ -161,6 +161,11 @@ function backend(): Backend {
   return cached;
 }
 
+/** Which shell the app is running in, so copy can be accurate about syncing. */
+export function storageKind(): 'desktop' | 'native' | 'browser' {
+  return backend().name;
+}
+
 export function storageLocation(): Promise<string> {
   return backend().location();
 }
@@ -248,9 +253,16 @@ function normalizeDeck(entry: unknown, index: number): Deck {
         id: typeof card.id === 'string' ? card.id : `card_${index}_${k}`,
         front,
         back,
+        ...(isReviewState(card.review) ? { review: card.review } : {}),
       };
     }),
   };
+}
+
+function isReviewState(value: unknown): value is Card['review'] {
+  if (!value || typeof value !== 'object') return false;
+  const r = value as Record<string, unknown>;
+  return ['ease', 'interval', 'due', 'reps', 'lapses'].every((k) => typeof r[k] === 'number');
 }
 
 function str(v: unknown): string {

@@ -87,6 +87,33 @@ export function questionWeight(question: Question): number {
   return question.type === 'matching' ? question.pairs.length : 1;
 }
 
+/**
+ * Per-card outcomes from a finished test, so results can feed the review
+ * schedule. A matching block reports each pair separately, since getting one
+ * pair wrong says nothing about the others.
+ */
+export function cardOutcomes(result: TestResult): { cardId: string; correct: boolean }[] {
+  const outcomes: { cardId: string; correct: boolean }[] = [];
+
+  for (const { question, given, score } of result.graded) {
+    if (question.type === 'matching') {
+      const picks = (given as Record<string, string> | undefined) ?? {};
+      for (const pair of question.pairs) {
+        outcomes.push({
+          cardId: pair.cardId,
+          correct: normalize(picks[pair.cardId] ?? '') === normalize(pair.answer),
+        });
+      }
+      continue;
+    }
+    // Written and true/false questions cover exactly one card.
+    const cardId = question.cardIds[0];
+    if (cardId) outcomes.push({ cardId, correct: score >= 1 });
+  }
+
+  return outcomes;
+}
+
 export function gradeTest(test: Test, responses: ResponseMap): TestResult {
   const graded: GradedQuestion[] = test.questions.map((question) => {
     const given = responses[question.id];

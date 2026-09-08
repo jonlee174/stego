@@ -1,8 +1,22 @@
+/** Spaced repetition schedule for one card. Absent until first reviewed. */
+export interface ReviewState {
+  /** SM-2 ease factor, 1.3 and up. Higher means the card stretches faster. */
+  ease: number;
+  /** Days until the next review. */
+  interval: number;
+  /** Epoch ms when the card is next due. */
+  due: number;
+  reps: number;
+  lapses: number;
+  lastGrade?: number;
+}
+
 /** A single flashcard. `front` is the prompt, `back` is the answer. */
 export interface Card {
   id: string;
   front: string;
   back: string;
+  review?: ReviewState;
 }
 
 export interface Deck {
@@ -33,6 +47,14 @@ export interface DeckFile {
 
 /** Which side of the card a question shows as the prompt. */
 export type Direction = 'front-to-back' | 'back-to-front' | 'mixed';
+
+/**
+ * How a study run picks its cards.
+ * all: the whole deck, paged freely.
+ * due: only what the schedule says is ready.
+ * dynamic: the whole deck, but a card rated Again comes back until it is known.
+ */
+export type StudyMode = 'all' | 'due' | 'dynamic';
 
 export interface WrittenQuestion {
   id: string;

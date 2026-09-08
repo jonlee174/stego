@@ -63,21 +63,23 @@ function localFile() {
 }
 
 /** The iCloud copy when it is available, otherwise a plain local file. */
+/**
+ * The desktop build always stores decks locally.
+ *
+ * It used to write into the app's iCloud container folder, but iCloud never
+ * synced that folder: a ubiquity container only starts syncing once an entitled
+ * process claims it through url(forUbiquityContainerIdentifier:) and writes
+ * through NSFileCoordinator, neither of which Electron can do. The result
+ * looked like sync while being an ordinary local folder in a confusing place.
+ * Decks move between the phone and the Mac by export and import instead.
+ */
 function DECKS_FILE() {
-  try {
-    // macOS provisions the container root itself once the app is entitled and
-    // iCloud Drive is on. Only then is it safe to create Documents inside it —
-    // creating the whole path unconditionally would leave a dead folder behind
-    // on a machine with iCloud switched off.
-    if (fsSync.existsSync(icloudContainer())) {
-      const dir = icloudDir();
-      fsSync.mkdirSync(dir, { recursive: true });
-      return path.join(dir, 'decks.json');
-    }
-  } catch {
-    // Fall through to local storage.
-  }
   return localFile();
+}
+
+/** Where earlier builds put the file, so those decks are not stranded. */
+function legacyICloudFile() {
+  return path.join(icloudDir(), 'decks.json');
 }
 
 let mainWindow = null;
@@ -215,27 +217,18 @@ ipcMain.handle('decks:read', async () => {
     return contents;
   } catch (err) {
     if (err.code !== 'ENOENT') throw err;
-    // Nothing in iCloud yet? Adopt an existing local file so turning sync on
-    // carries the decks over instead of starting empty.
-    if (target !== localFile()) {
-      try {
-        const carried = await fs.readFile(localFile(), 'utf8');
-        // Copy it up straight away. The renderer treats whatever read() returns
-        // as already-on-disk and suppresses the matching write, so without this
-        // the decks would sit in local storage and sync would never start.
-        try {
-          await fs.mkdir(path.dirname(target), { recursive: true });
-          await fs.writeFile(target, carried, 'utf8');
-        } catch {
-          // Still hand back the decks even if the copy up fails.
-        }
-        lastWritten = carried;
-        return carried;
-      } catch {
-        return null;
-      }
+
+    // First run after the move to local storage: adopt whatever an earlier
+    // build left in the iCloud container folder so no decks are lost.
+    try {
+      const carried = await fs.readFile(legacyICloudFile(), 'utf8');
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.writeFile(target, carried, 'utf8');
+      lastWritten = carried;
+      return carried;
+    } catch {
+      return null;
     }
-    return null;
   }
 });
 
@@ -263,7 +256,8 @@ ipcMain.handle('window:background', async (_event, color) => {
 
 ipcMain.handle('decks:path', async () => DECKS_FILE());
 
-ipcMain.handle('decks:syncing', async () => DECKS_FILE() !== localFile());
+// The desktop build does not sync, so Settings must not claim that it does.
+ipcMain.handle('decks:syncing', async () => false);
 
 ipcMain.handle('decks:export', async (_event, filename, contents) => {
   const { canceled, filePath } = await dialog.showSaveDialog(mainWindow ?? undefined, {

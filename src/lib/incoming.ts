@@ -2,6 +2,7 @@ import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { DECK_EXTENSION } from './share';
+import { cloud } from './cloud';
 
 /**
  * A deck someone sent. iOS hands the app a file URL when a `.stegodeck`
@@ -24,6 +25,12 @@ function looksLikeDeck(url: string): boolean {
 }
 
 async function readShared(url: string): Promise<string | null> {
+  // A URL handed over by Messages or AirDrop is security scoped, so it has to
+  // be read natively. The Filesystem plugin cannot claim that access and the
+  // read fails silently, which looks like the deck simply never arriving.
+  const native = await cloud.readIncoming(url);
+  if (native !== null) return native;
+
   try {
     const res = await Filesystem.readFile({ path: toPath(url), encoding: Encoding.UTF8 });
     return typeof res.data === 'string' ? res.data : null;

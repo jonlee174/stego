@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { acceptableAnswers, gradeTest, gradeWritten, normalize, questionWeight } from '../src/lib/grading';
-import type { Test } from '../src/types';
+import {
+  acceptableAnswers,
+  cardOutcomes,
+  gradeTest,
+  gradeWritten,
+  normalize,
+  questionWeight,
+} from '../src/lib/grading';
+import type { Question, Test } from '../src/types';
 
 describe('normalize', () => {
   it('ignores case, punctuation, accents and spacing', () => {
@@ -105,5 +112,61 @@ describe('gradeTest', () => {
   it('does not accept a true/false answer of the wrong shape', () => {
     const result = gradeTest(test, { t1: 'false' });
     expect(result.graded.find((g) => g.question.id === 't1')!.correct).toBe(false);
+  });
+});
+
+describe('cardOutcomes', () => {
+  const question = (id: string, type: 'written' | 'truefalse', cardId: string): Question =>
+    type === 'written'
+      ? { id, type, cardIds: [cardId], prompt: 'p', answer: 'a' }
+      : { id, type, cardIds: [cardId], prompt: 'p', claim: 'a', answer: true };
+
+  it('reports one outcome per card for written and true/false', () => {
+    const test: Test = {
+      deckId: 'd',
+      deckName: 'D',
+      createdAt: 0,
+      questions: [question('w', 'written', 'c1'), question('t', 'truefalse', 'c2')],
+    };
+    const outcomes = cardOutcomes(gradeTest(test, { w: 'a', t: false }));
+    expect(outcomes).toEqual([
+      { cardId: 'c1', correct: true },
+      { cardId: 'c2', correct: false },
+    ]);
+  });
+
+  it('reports each matching pair separately', () => {
+    const test: Test = {
+      deckId: 'd',
+      deckName: 'D',
+      createdAt: 0,
+      questions: [
+        {
+          id: 'm',
+          type: 'matching',
+          cardIds: ['c1', 'c2'],
+          pairs: [
+            { cardId: 'c1', prompt: 'one', answer: 'first' },
+            { cardId: 'c2', prompt: 'two', answer: 'second' },
+          ],
+          choices: ['first', 'second'],
+        },
+      ],
+    };
+    const outcomes = cardOutcomes(gradeTest(test, { m: { c1: 'first', c2: 'first' } }));
+    expect(outcomes).toEqual([
+      { cardId: 'c1', correct: true },
+      { cardId: 'c2', correct: false },
+    ]);
+  });
+
+  it('counts an unanswered question as wrong', () => {
+    const test: Test = {
+      deckId: 'd',
+      deckName: 'D',
+      createdAt: 0,
+      questions: [question('w', 'written', 'c1')],
+    };
+    expect(cardOutcomes(gradeTest(test, {}))).toEqual([{ cardId: 'c1', correct: false }]);
   });
 });

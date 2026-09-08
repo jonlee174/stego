@@ -32,6 +32,7 @@ import {
 } from './theme';
 import { makeId } from '../lib/random';
 import { starterDeck } from './starter';
+import { gradeFor, schedule, type Difficulty } from '../lib/scheduler';
 import { watchIncomingDecks } from '../lib/incoming';
 import type { Card, Deck } from '../types';
 
@@ -47,6 +48,8 @@ interface DecksApi {
   exportFile(): string;
   /** Registers a callback for decks arriving from a shared file. */
   onDecksReceived(cb: (names: string[]) => void): void;
+  /** Records one spaced repetition review from the responder's own rating. */
+  reviewCard(deckId: string, cardId: string, difficulty: Difficulty): void;
 }
 
 const DecksContext = createContext<DecksApi | null>(null);
@@ -211,6 +214,22 @@ export function DecksProvider({ children }: { children: ReactNode }) {
         }));
         setDecks((prev) => (mode === 'replace' ? incoming : [...incoming, ...prev]));
         return incoming.length;
+      },
+      reviewCard(deckId, cardId, difficulty) {
+        setDecks((prev) =>
+          prev.map((deck) => {
+            if (deck.id !== deckId) return deck;
+            return {
+              ...deck,
+              updatedAt: Date.now(),
+              cards: deck.cards.map((card) =>
+                card.id === cardId
+                  ? { ...card, review: schedule(card.review, gradeFor(difficulty)) }
+                  : card,
+              ),
+            };
+          }),
+        );
       },
       exportFile: () => serializeDecks(decks, appearance()),
       onDecksReceived: (cb: (names: string[]) => void) => {

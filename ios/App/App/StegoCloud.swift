@@ -15,7 +15,8 @@ public class StegoCloudPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "available", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "read", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "write", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "write", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "readIncoming", returnType: CAPPluginReturnPromise)
     ]
 
     /// Must match the container id used by the Electron build.
@@ -101,6 +102,39 @@ public class StegoCloudPlugin: CAPPlugin, CAPBridgedPlugin {
             } else {
                 call.resolve()
             }
+        }
+    }
+
+    /// Reads a file handed to the app from elsewhere, such as a deck arriving
+    /// through Messages or AirDrop.
+    ///
+    /// These URLs are security scoped. Without claiming access first the read
+    /// fails, which is why the Filesystem plugin cannot be used here: the deck
+    /// would download, the app would open, and nothing would appear.
+    @objc func readIncoming(_ call: CAPPluginCall) {
+        guard let raw = call.getString("url"), let url = URL(string: raw) ?? URL(string: raw.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "") else {
+            call.reject("url is required")
+            return
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+
+            var contents: String?
+            var coordinationError: NSError?
+            NSFileCoordinator().coordinate(
+                readingItemAt: url, options: .withoutChanges, error: &coordinationError
+            ) { readURL in
+                contents = try? String(contentsOf: readURL, encoding: .utf8)
+            }
+
+            // Fall back to a plain read for URLs that are not coordinated.
+            if contents == nil {
+                contents = try? String(contentsOf: url, encoding: .utf8)
+            }
+
+            call.resolve(["contents": contents ?? NSNull()])
         }
     }
 }

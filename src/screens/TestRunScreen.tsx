@@ -10,7 +10,8 @@ import {
   IconScale,
   IconX,
 } from '../components/Icons';
-import { gradeTest, questionWeight } from '../lib/grading';
+import { cardOutcomes, gradeTest, questionWeight } from '../lib/grading';
+import { useDecks } from '../state/decks';
 import type { Question, ResponseMap, Test, TestResult } from '../types';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -24,6 +25,7 @@ export default function TestRunScreen({
   test: Test;
   onFinish: (result: TestResult) => void;
 }) {
+  const { reviewCard } = useDecks();
   const [index, setIndex] = useState(0);
   const [responses, setResponses] = useState<ResponseMap>({});
   const [confirmSubmit, setConfirmSubmit] = useState(false);
@@ -57,8 +59,15 @@ export default function TestRunScreen({
     setIndex((prev) => Math.min(Math.max(prev + delta, 0), total - 1));
 
   const submit = useCallback(() => {
-    onFinish(gradeTest(test, responses));
-  }, [onFinish, responses, test]);
+    const result = gradeTest(test, responses);
+    // A graded answer is evidence of recall, so it moves the card's schedule.
+    // Only correctness is known here, so it maps to Good or Again rather than
+    // the finer ratings the study screen offers.
+    for (const { cardId, correct } of cardOutcomes(result)) {
+      reviewCard(test.deckId, cardId, correct ? 'good' : 'again');
+    }
+    onFinish(result);
+  }, [onFinish, responses, test, reviewCard]);
 
   const trySubmit = () => {
     if (unanswered > 0) setConfirmSubmit(true);
