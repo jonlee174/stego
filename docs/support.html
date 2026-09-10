@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stego — Support</title>
+    <title>Stego · Support</title>
     <style>
       :root {
         --bg: #dcdcc8;
@@ -130,9 +130,9 @@
 
       <h2>Getting started</h2>
       <ol>
-        <li><strong>Create</strong> — add a title and fill in cards. The front is the prompt, the back is the answer.</li>
-        <li><strong>Study</strong> — tap or click a card to flip it; swipe or use the arrow keys to move through the deck.</li>
-        <li><strong>Test</strong> — pick a deck, choose your question mix, and take a graded practice test.</li>
+        <li><strong>Create.</strong> Add a title and fill in cards. The front is the prompt, the back is the answer.</li>
+        <li><strong>Study.</strong> Tap or click a card to flip it, then swipe or use the arrow keys to move through the deck.</li>
+        <li><strong>Test.</strong> Pick a deck, choose your question mix, and take a graded practice test.</li>
       </ol>
       <p>
         A new install includes a sample deck called <em>Dinosaur Basics</em> so there is
@@ -142,15 +142,40 @@
       <h2>Studying</h2>
       <ul>
         <li>Tap or click the card, or press space, to flip it.</li>
-        <li><strong>Got it</strong> and <strong>Review again</strong> sort cards as you go. At the end of a round you can drill just the ones you missed.</li>
+        <li>Answer in two steps. First <strong>Review again</strong> or <strong>Got it</strong>,
+          then how hard it felt: <strong>Easy</strong>, <strong>Medium</strong>, or
+          <strong>Hard</strong>. Splitting the question keeps each half simple.</li>
         <li><strong>Show first</strong> switches between Front, Back, and Mixed.</li>
         <li>The shuffle and restart buttons are in the top bar.</li>
       </ul>
 
+      <h3>Study modes</h3>
+      <table>
+        <tr><th>Mode</th><th>What it does</th></tr>
+        <tr><td>All</td><td>The whole deck, in order, paged freely</td></tr>
+        <tr><td>Due</td><td>Only the cards the schedule says are ready</td></tr>
+        <tr><td>Dynamic</td><td>Repeats the cards you miss until none are left</td></tr>
+      </table>
+      <p>
+        In <strong>Dynamic</strong>, a card you miss comes back a few cards later, and a card you
+        get but rate Hard comes back much later in the same run. The run ends only when every
+        card has been got without a struggle, and finishing plays a small celebration. If a card
+        keeps returning but you actually know it, <strong>Not hard after all</strong> clears it.
+      </p>
+
+      <h3>Spaced repetition</h3>
+      <p>
+        Every answer moves that card's schedule. Cards you find easy come back less often, cards
+        you miss come back within minutes. The deck list shows how many cards are due, and
+        <strong>Review</strong> studies just those. A card missed many times is flagged so you
+        can reword it, since a card that keeps failing is usually the card's fault. Test results
+        feed the same schedule.
+      </p>
+
       <h2>Building a test</h2>
       <p>
         You control how much of the deck is used and how many questions of each type. Four
-        presets — Quick 10, Even mix, Write-in only, and Whole deck — are there as starting
+        presets, Quick 10, Even mix, Write-in only, and Whole deck, are there as starting
         points.
       </p>
       <table>
@@ -168,21 +193,52 @@
       <ul>
         <li>Capitalization, punctuation, accents, and extra spaces are ignored. A leading "a", "an", or "the" is ignored too.</li>
         <li><strong>Small typos are forgiven</strong> on longer answers. Answers of four characters or fewer must be exact.</li>
-        <li><strong>Alternative answers</strong> — separate them with a semicolon or a vertical bar and any one of them counts as correct. For example <code>T. rex; Tyrannosaurus</code>.</li>
+        <li><strong>Alternative answers.</strong> Separate them with a semicolon or a vertical bar and any one of them counts as correct. For example <code>T. rex; Tyrannosaurus</code>.</li>
         <li>Matching blocks give <strong>partial credit</strong>: one point per correct pair.</li>
         <li>After submitting you get a score, a breakdown by question type, and a review of every question with the correct answers.</li>
       </ul>
 
-      <h2>iCloud sync</h2>
+      <h2>Syncing your decks</h2>
       <p>
-        If you are signed in to iCloud, decks sync automatically between your iPhone, iPad, and
-        Mac. Nothing needs switching on. If decks are not appearing on another device:
+        Stego works fully offline and needs no account. If you want your decks on more than one
+        device, create a <strong>sync account</strong> in <strong>Settings &rsaquo; Sync</strong>.
+        It is a username and a password, with no email address.
       </p>
       <ul>
-        <li>Check both devices use the same Apple Account and are signed in to iCloud.</li>
-        <li>Check <strong>Settings › [your name] › iCloud › iCloud Drive</strong> is on.</li>
-        <li>Sync needs a network connection. Open the app on both devices once while online.</li>
-        <li>If iCloud is unavailable, Stego keeps working and saves everything on the device instead — no decks are lost.</li>
+        <li>Syncing happens when the app opens, shortly after you edit a deck, and whenever you
+          press <strong>Sync now</strong>.</li>
+        <li><strong>Sync theme</strong> is off by default. Turn it on for a device that should
+          take its dinosaur, color, and appearance from the account. Leave it off for a device
+          that keeps its own look.</li>
+        <li>Syncing while offline says so rather than failing quietly. Your decks are always kept
+          on the device as well.</li>
+        <li>There is no password reset, because there is no email address on the account. If you
+          forget it, the account cannot be recovered, though your decks stay on your devices.</li>
+        <li>Signing in as a different person replaces the decks on that device with theirs. The
+          previous account keeps its own decks, and signing back in brings them back.</li>
+      </ul>
+      <p>
+        On iPhone and iPad, decks are also kept in your own private iCloud container, which works
+        without an account but only between Apple devices signed in to the same Apple Account.
+        The Mac version stores decks locally, so use a sync account, export, or the share sheet
+        to move decks to it.
+      </p>
+
+      <h2>Sending a deck to someone</h2>
+      <p>
+        If you both have accounts, you can send a deck straight to someone by username. Open
+        <strong>Export</strong>, or the share button on a deck, and choose
+        <strong>Send to a Stego user</strong>.
+      </p>
+      <ul>
+        <li>Decks sent to you wait in <strong>Sent to me</strong>, reached from the button in the
+          deck list. Nothing is added to your library until you accept it.</li>
+        <li>Every received deck can be <strong>rejected</strong>, <strong>reported</strong>, or
+          the sender <strong>blocked</strong> so they cannot contact you again. Blocked people
+          are listed at the bottom of that screen and can be unblocked.</li>
+        <li>Usernames are private. Someone has to know yours exactly to send you anything.</li>
+        <li>What may and may not be sent is set out in the
+          <a href="rules.html">Community Rules</a>.</li>
       </ul>
 
       <h2>On Mac</h2>
@@ -194,8 +250,8 @@
         <tr><th>Shortcut</th><th>Does</th></tr>
         <tr><td><code>Space</code> or <code>Return</code></td><td>Flip the current card</td></tr>
         <tr><td><code>&larr;</code> / <code>&rarr;</code></td><td>Previous / next card or question</td></tr>
-        <tr><td><code>1</code></td><td>Mark the card "Review again"</td></tr>
-        <tr><td><code>2</code></td><td>Mark the card "Got it"</td></tr>
+        <tr><td><code>1</code> / <code>2</code></td><td>"Review again" or "Got it"</td></tr>
+        <tr><td><code>1</code> / <code>2</code> / <code>3</code></td><td>Easy, Medium, or Hard, once the prompt is up</td></tr>
         <tr><td><code>&#8984;S</code></td><td>Save the deck you are editing</td></tr>
         <tr><td><code>Esc</code></td><td>Close a dialog</td></tr>
       </table>
@@ -206,18 +262,21 @@
 
       <h2>Importing and exporting</h2>
       <p>
-        Decks live in a plain JSON file, so they are easy to back up or move. Use
-        <strong>Export</strong> on the deck list to write a file, and <strong>Import</strong>
-        to bring one back — either merging it with your decks or replacing them. On iPhone and
-        iPad the file appears in the Files app under <strong>Stego</strong>. On Mac you choose
-        where to save it.
+        Decks live in a plain JSON file, so they are easy to back up or move.
+        <strong>Export</strong> asks which decks to include, then where to send them: saved to a
+        file, shared through Messages, Mail, or AirDrop, or sent to another Stego user.
+        <strong>Import</strong> adds the decks in a file alongside your own, so importing can
+        never overwrite anything. On Mac you choose where to save. On iPhone and iPad the file
+        appears in the Files app under <strong>Stego</strong>.
       </p>
 
       <h2>Your data</h2>
       <p>
-        Stego has no accounts, no ads, and no analytics, and collects nothing about you. Decks
-        stay on your device and in your own private iCloud container, which the developer
-        cannot access. Deleting the app removes its local data. Full details are in the
+        Stego has no ads and no analytics. Without a sync account, nothing ever leaves your
+        device. With one, your decks and username are stored on the sync server so they reach
+        your other devices, and nothing else is collected. There is no email address on an
+        account, and you can delete the account, and everything stored with it, from
+        <strong>Settings &rsaquo; Sync</strong>. Full details are in the
         <a href="privacy.html">privacy policy</a>.
       </p>
 
@@ -225,7 +284,8 @@
       <ul>
         <li>iOS or iPadOS 14.0 or later.</li>
         <li>macOS 12.0 (Monterey) or later.</li>
-        <li>An iCloud account is optional, and only needed for syncing between devices.</li>
+        <li>A sync account is optional, and only needed for syncing between devices or sending
+          decks to other people. You must be 13 or older to create one.</li>
         <li>No internet connection is required to create, study, or test.</li>
       </ul>
 
@@ -237,6 +297,6 @@
       </p>
     </main>
 
-    <footer>Stego · <a href="privacy.html">Privacy Policy</a></footer>
+    <footer>Stego · <a href="privacy.html">Privacy Policy</a> · <a href="rules.html">Community Rules</a></footer>
   </body>
 </html>

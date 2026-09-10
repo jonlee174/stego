@@ -37,6 +37,7 @@ const MODE_KEY = 'stego.theme';
 const DINO_KEY = 'stego.dino';
 const PALETTE_KEY = 'stego.palette';
 const SYNC_THEME_KEY = 'stego.syncTheme';
+const CHANGED_AT_KEY = 'stego.theme.changedAt';
 /** Written by versions that bundled the dinosaur and color into one choice. */
 const LEGACY_SKIN_KEY = 'stego.skin';
 
@@ -122,12 +123,14 @@ function notify() {
 
 export function setDino(dino: DinoName) {
   store(DINO_KEY, dino);
+  touch();
   notify();
 }
 
 export function setPalette(palette: Palette) {
   applyPalette(palette);
   store(PALETTE_KEY, palette);
+  touch();
   syncChrome();
   notify();
 }
@@ -135,8 +138,26 @@ export function setPalette(palette: Palette) {
 export function setMode(pref: ThemePref) {
   applyMode(pref);
   store(MODE_KEY, pref);
+  touch();
   syncChrome();
   notify();
+}
+
+// Sync compares this against the server's stamp, so a change made here since
+// the last sync is not overwritten by the older appearance already up there.
+function touch() {
+  store(CHANGED_AT_KEY, String(Date.now()));
+}
+
+/** When appearance last changed on this device, epoch ms. */
+export function themeChangedAt(): number {
+  if (typeof localStorage === 'undefined') return 0;
+  return Number(localStorage.getItem(CHANGED_AT_KEY)) || 0;
+}
+
+/** Stamps the appearance as having come from the server at that moment. */
+export function setThemeChangedAt(at: number) {
+  store(CHANGED_AT_KEY, String(at));
 }
 
 export function currentDino(): DinoName {

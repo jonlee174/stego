@@ -38,6 +38,8 @@ export interface AppSettings {
   skin?: string;
   /** Per device, never pushed to the server. */
   syncTheme?: boolean;
+  /** When this appearance was chosen, epoch ms. Decides who wins on sync. */
+  at?: number;
 }
 
 /** A deletion, remembered so a sync cannot resurrect the deck. */

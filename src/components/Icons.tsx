@@ -193,6 +193,20 @@ export const IconAuto = (p: IconProps) => (
   </Svg>
 );
 
+export const IconInbox = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.5 13h4l1.5 2.5h6L16.5 13h4" />
+    <path d="M5.2 5.5h13.6l1.7 7.5v4a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5v-4z" />
+  </Svg>
+);
+
+export const IconSend = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M20.5 3.5 10.5 13.5" />
+    <path d="M20.5 3.5 14 20.5l-3.5-7-7-3.5z" />
+  </Svg>
+);
+
 /** A loop tightening on a centre, for the dynamic study run. */
 export const IconTarget = (p: IconProps) => (
   <Svg {...p}>

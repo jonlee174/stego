@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import type { Nav } from '../App';
 import { Segmented, TopBar } from '../components/ui';
+import { IconCheck } from '../components/Icons';
 import { useToast } from '../components/Toast';
 import { useAccount } from '../state/account';
+import { RULES_URL, RULES_VERSION, openExternal } from '../lib/links';
+import { Preferences } from '@capacitor/preferences';
 import {
   OfflineError,
   USERNAME_RULE,
@@ -15,18 +18,20 @@ import {
 type Mode = 'in' | 'up';
 
 export default function AccountScreen({ nav }: { nav: Nav }) {
-  const { signIn, signUp, sync } = useAccount();
+  const { signIn, signUp, sync, username: lastUser } = useAccount();
   const toast = useToast();
   const [mode, setMode] = useState<Mode>('in');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   const name = normalizeUsername(username);
   const validName = USERNAME_RULE.test(name);
   const validPassword = password.length >= 8;
-  const canSubmit = validName && validPassword && !busy;
+  // Apple wants agreement captured before the account exists, not implied by use.
+  const canSubmit = validName && validPassword && !busy && (mode === 'in' || agreed);
 
   async function submit() {
     if (!canSubmit) return;
@@ -46,14 +51,19 @@ export default function AccountScreen({ nav }: { nav: Nav }) {
           return;
         }
         await signUp(name, password);
+        await Preferences.set({ key: 'stego.rules.accepted', value: RULES_VERSION });
       } else {
         await signIn(name, password);
       }
 
-      // Signing in on a device that already has decks merges the two, so
-      // nothing is lost in either direction.
-      await sync().catch(() => {});
-      toast(mode === 'up' ? 'Account created' : `Signed in as ${name}`);
+      const switched = await sync().catch(() => false);
+      toast(
+        switched
+          ? `Signed in as ${name}. This device now shows their decks.`
+          : mode === 'up'
+            ? 'Account created'
+            : `Signed in as ${name}`,
+      );
       nav.back();
     } catch (err) {
       setError(
@@ -124,6 +134,40 @@ export default function AccountScreen({ nav }: { nav: Nav }) {
             {mode === 'up' && (
               <p className="hint">
                 {describeUsernameRule()} Passwords need 8 characters or more.
+              </p>
+            )}
+
+            {mode === 'up' && (
+              <button
+                type="button"
+                className="agree"
+                role="checkbox"
+                aria-checked={agreed}
+                onClick={() => setAgreed((v) => !v)}
+              >
+                <span className="agree__box">{agreed && <IconCheck className="btn__icon" />}</span>
+                <span className="agree__text">
+                  I am 13 or older and agree to the{' '}
+                  <span
+                    className="linkish"
+                    role="link"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openExternal(RULES_URL);
+                    }}
+                  >
+                    Community Rules
+                  </span>
+                  , including zero tolerance for objectionable content and abusive users.
+                </span>
+              </button>
+            )}
+
+            {lastUser && name.length > 0 && name !== lastUser && (
+              <p className="hint">
+                The decks on this device belong to {lastUser}. Signing in as someone
+                else replaces them here. They stay safe in {lastUser}'s account.
               </p>
             )}
 

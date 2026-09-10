@@ -16,6 +16,7 @@ import {
 import { useAccount } from '../state/account';
 import { OfflineError } from '../lib/supabase';
 import { isSyncing, storageKind, storageLocation } from '../lib/storage';
+import { PRIVACY_URL, RULES_URL, SUPPORT_URL, openExternal } from '../lib/links';
 
 export default function SettingsScreen({ nav }: { nav: Nav }) {
   const [dino, chooseDino] = useDino();
@@ -23,6 +24,7 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
   const [mode, setMode] = useTheme();
   const [where, setWhere] = useState('');
   const [syncing, setSyncing] = useState(false);
+  const { configured, signedIn } = useAccount();
 
   useEffect(() => {
     void storageLocation().then(setWhere);
@@ -119,13 +121,33 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
               <span className="panel__title">Storage</span>
             </div>
             <p className="hint">
-              {syncing
-                ? 'Your decks and these choices sync across your devices through iCloud.'
-                : storageKind() === 'desktop'
-                  ? 'Your decks are saved on this Mac. To move a deck between devices, export it here or send it from your phone.'
-                  : 'Your decks are saved on this device. Sync needs iCloud Drive turned on in Settings.'}
+              Saved on {storageKind() === 'desktop' ? 'this Mac' : 'this device'}
+              {signedIn
+                ? ' and in your sync account.'
+                : syncing
+                  ? ' and in your iCloud.'
+                  : configured
+                    ? '. Sign in above to sync them.'
+                    : '.'}
             </p>
             {where && <p className="hint settings__path">{where}</p>}
+          </div>
+
+          <div className="panel stack">
+            <div className="panel__head">
+              <span className="panel__title">Legal</span>
+            </div>
+            <div className="row legal__links">
+              <button className="btn btn--ghost btn--sm" onClick={() => openExternal(RULES_URL)}>
+                Community Rules
+              </button>
+              <button className="btn btn--ghost btn--sm" onClick={() => openExternal(PRIVACY_URL)}>
+                Privacy Policy
+              </button>
+              <button className="btn btn--ghost btn--sm" onClick={() => openExternal(SUPPORT_URL)}>
+                Support
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -145,8 +167,8 @@ function AccountPanel({ nav }: { nav: Nav }) {
 
   async function syncNow() {
     try {
-      await sync();
-      toast('Decks synced');
+      const switched = await sync();
+      toast(switched ? `Loaded ${username}'s decks onto this device` : 'Decks synced');
     } catch (err) {
       toast(
         err instanceof OfflineError ? 'You are offline' : 'Could not sync, try again later',

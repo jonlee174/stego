@@ -8,6 +8,7 @@ import TestRunScreen from './screens/TestRunScreen';
 import TestResultsScreen from './screens/TestResultsScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AccountScreen from './screens/AccountScreen';
+import InboxScreen from './screens/InboxScreen';
 import { useDecks } from './state/decks';
 import { useToast } from './components/Toast';
 import type { StudyMode, Test, TestConfig, TestResult } from './types';
@@ -21,7 +22,8 @@ export type Route =
   | { name: 'testRun' }
   | { name: 'testResults' }
   | { name: 'settings' }
-  | { name: 'account' };
+  | { name: 'account' }
+  | { name: 'inbox' };
 
 export interface Nav {
   go(route: Route): void;
@@ -96,6 +98,7 @@ export default function App() {
       {route.name === 'home' && <Home nav={nav} />}
       {route.name === 'settings' && <SettingsScreen nav={nav} />}
       {route.name === 'account' && <AccountScreen nav={nav} />}
+      {route.name === 'inbox' && <InboxScreen nav={nav} />}
       {route.name === 'decks' && <DeckListScreen nav={nav} intent={route.intent} />}
       {route.name === 'editor' && <DeckEditorScreen nav={nav} deckId={route.deckId} />}
       {route.name === 'study' && <StudyScreen nav={nav} deckId={route.deckId} mode={route.mode} />}

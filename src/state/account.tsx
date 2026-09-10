@@ -32,12 +32,16 @@ import {
   setDino,
   setMode,
   setPalette,
+  setThemeChangedAt,
+  themeChangedAt,
   useSyncTheme,
 } from './theme';
 import type { AppSettings } from '../types';
 
 /** Cached so the name renders offline. */
 const NAME_KEY = 'stego.account.username';
+/** Which account the decks on this device belong to. */
+const OWNER_KEY = 'stego.library.owner';
 
 export type SyncState = 'idle' | 'syncing';
 
@@ -54,8 +58,9 @@ interface AccountApi {
   signIn(username: string, password: string): Promise<void>;
   signOut(): Promise<void>;
   deleteAccount(): Promise<void>;
-  /** Throws OfflineError when there is no network. */
-  sync(): Promise<void>;
+  /** Resolves true when the library was replaced from a different account.
+   * Throws OfflineError when there is no network. */
+  sync(): Promise<boolean>;
 }
 
 const AccountContext = createContext<AccountApi | null>(null);
@@ -79,7 +84,7 @@ function applyAppearance(remote: AppSettings | null) {
 
 export function AccountProvider({ children }: { children: ReactNode }) {
   const configured = isSyncConfigured();
-  const { ready, library, replaceLibrary } = useDecks();
+  const { ready, decks, library, replaceLibrary } = useDecks();
   const [syncTheme] = useSyncTheme();
   const [username, setUsername] = useState<string | null>(null);
   const [signedIn, setSignedIn] = useState(false);
@@ -121,35 +126,54 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }, [configured]);
 
   const sync = useCallback(async () => {
-    if (!configured || !signedIn) return;
+    if (!configured || !signedIn) return false;
     if (isOffline()) throw new OfflineError();
-    if (running.current) return;
+    if (running.current) return false;
 
     running.current = true;
     setState('syncing');
     try {
       const { data } = await supabase().auth.getUser();
       const userId = data.user?.id;
-      if (!userId) return;
+      if (!userId) return false;
 
       const remote = await pull();
-      const local = library();
-      const merged = mergeLibraries(local, remote ?? { decks: [], deleted: [] });
+      const empty = { decks: [], deleted: [] };
+      const owner = (await Preferences.get({ key: OWNER_KEY })).value;
+      // Decks on this device belong to whoever last synced them. Merging them
+      // into a different account would hand over the library and, worse, carry
+      // this account's deletions across as tombstones. An unset owner means
+      // they have never synced, so adopting them is the wanted behavior.
+      const switched = owner !== null && owner !== userId;
 
-      if (merged.changed) replaceLibrary({ decks: merged.decks, deleted: merged.deleted });
+      const next = switched
+        ? { decks: remote?.decks ?? [], deleted: remote?.deleted ?? [], changed: true }
+        : mergeLibraries(library(), remote ?? empty);
 
-      // Pull before push, so a device joining an account adopts its look.
-      if (syncTheme) applyAppearance(remote?.settings ?? null);
+      if (next.changed) replaceLibrary({ decks: next.decks, deleted: next.deleted });
+      await Preferences.set({ key: OWNER_KEY, value: userId });
+
+      // Only take the server's appearance when it is newer than the change made
+      // here, or a theme picked since the last sync is undone by this pull.
+      const remoteAt = remote?.settings?.at ?? 0;
+      const localAt = switched ? 0 : themeChangedAt();
+      let at = localAt;
+      if (syncTheme && remote?.settings && remoteAt > localAt) {
+        applyAppearance(remote.settings);
+        at = remoteAt;
+        setThemeChangedAt(remoteAt);
+      }
 
       await push(
         {
-          decks: merged.decks,
-          deleted: merged.deleted,
-          settings: syncTheme ? appearance() : null,
+          decks: next.decks,
+          deleted: next.deleted,
+          settings: syncTheme ? { ...appearance(), at: at || Date.now() } : null,
         },
         userId,
       );
       setLastSyncedAt(Date.now());
+      return switched;
     } finally {
       running.current = false;
       setState('idle');
@@ -162,6 +186,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     syncedOnOpen.current = true;
     void sync().catch(() => {});
   }, [ready, signedIn, sync]);
+
+  // Push edits shortly after they settle. Without this a deck made now only
+  // reached the server on the next launch, so switching accounts in between
+  // threw it away before it had ever been sent.
+  useEffect(() => {
+    if (!ready || !signedIn || !syncedOnOpen.current) return;
+    const timer = setTimeout(() => void sync().catch(() => {}), 3000);
+    return () => clearTimeout(timer);
+  }, [decks, ready, signedIn, sync]);
 
   const api = useMemo<AccountApi>(
     () => ({
@@ -181,6 +214,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setUsername(name.toLowerCase());
       },
       async signOut() {
+        // Last chance to save local work to this account before the session ends.
+        if (!isOffline()) await sync().catch(() => {});
         await remoteSignOut();
         await Preferences.remove({ key: NAME_KEY });
         setUsername(null);

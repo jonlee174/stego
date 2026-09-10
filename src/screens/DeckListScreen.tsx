@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Nav } from '../App';
 import { useDecks } from '../state/decks';
 import { useToast } from '../components/Toast';
@@ -13,12 +13,17 @@ import {
   IconPencil,
   IconPlus,
   IconQuiz,
+  IconInbox,
   IconSearch,
+  IconSend,
   IconTarget,
   IconTrash,
   IconUpload,
 } from '../components/Icons';
 import { ExportCancelled, pickJsonFile } from '../lib/transfer';
+import { useAccount } from '../state/account';
+import { inboxCount, sendDeck } from '../lib/sharing';
+import { OfflineError, USERNAME_RULE, isOffline, normalizeUsername } from '../lib/supabase';
 import { canShare, saveDecksToFiles, shareDecks } from '../lib/share';
 import { usableCards } from '../lib/testgen';
 import { dueCount } from '../lib/scheduler';
@@ -38,6 +43,9 @@ export default function DeckListScreen({
   // Null means that step is not on screen.
   const [picking, setPicking] = useState<string[] | null>(null);
   const [exporting, setExporting] = useState<string[] | null>(null);
+  const [sending, setSending] = useState<string[] | null>(null);
+  const { signedIn } = useAccount();
+  const waiting = useInboxCount(signedIn);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -58,9 +66,9 @@ export default function DeckListScreen({
     return decks.find((d) => d.id === deckIds[0])?.name ?? 'Stego decks';
   }
 
-  /** Off a phone there is no share sheet, so skip the one-option chooser. */
+  /** Skip the chooser only when saving is genuinely the sole destination. */
   function chooseDestination(deckIds: string[]) {
-    if (canShare()) setExporting(deckIds);
+    if (canShare() || signedIn) setExporting(deckIds);
     else void onSaveToFiles(deckIds);
   }
 
@@ -104,6 +112,17 @@ export default function DeckListScreen({
         onBack={() => nav.back()}
         actions={
           <div className="row row--tight">
+            {signedIn && (
+              <button
+                className="btn btn--quiet btn--sm"
+                onClick={() => nav.go({ name: 'inbox' })}
+                title="Decks sent to me"
+              >
+                <IconInbox className="btn__icon" />
+                <span className="only-wide">Inbox</span>
+                {waiting > 0 && <span className="badge">{waiting}</span>}
+              </button>
+            )}
             <button className="btn btn--quiet btn--sm" onClick={onImport} title="Import decks">
               <IconUpload className="btn__icon" />
               <span className="only-wide">Import</span>
@@ -242,10 +261,156 @@ export default function DeckListScreen({
               </span>
             </button>
           )}
+
+          {signedIn && (
+            <button
+              className="btn btn--ghost btn--block export-choice"
+              onClick={() => {
+                setSending(exporting);
+                setExporting(null);
+              }}
+            >
+              <IconSend className="btn__icon" />
+              <span>
+                <strong>Send to a Stego user</strong>
+                <small>Straight to their inbox, if you know their username.</small>
+              </span>
+            </button>
+          )}
         </Dialog>
       )}
 
+      {sending && (
+        <SendDialog
+          decks={decks.filter((d) => sending.includes(d.id))}
+          onClose={() => setSending(null)}
+          onDone={(message, tone) => {
+            setSending(null);
+            toast(message, tone);
+          }}
+        />
+      )}
+
     </section>
+  );
+}
+
+/** Refreshed on mount and when the window regains focus. */
+function useInboxCount(signedIn: boolean): number {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!signedIn) {
+      setCount(0);
+      return;
+    }
+    let live = true;
+    const read = () => {
+      void inboxCount()
+        .then((n) => live && setCount(n))
+        .catch(() => {});
+    };
+    read();
+    window.addEventListener('focus', read);
+    return () => {
+      live = false;
+      window.removeEventListener('focus', read);
+    };
+  }, [signedIn]);
+
+  return count;
+}
+
+function SendDialog({
+  decks,
+  onClose,
+  onDone,
+}: {
+  decks: Deck[];
+  onClose: () => void;
+  onDone: (message: string, tone?: 'good' | 'bad') => void;
+}) {
+  const [username, setUsername] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const name = normalizeUsername(username);
+  const canSend = USERNAME_RULE.test(name) && !busy;
+
+  async function send() {
+    if (!canSend) return;
+    if (isOffline()) {
+      setError('You are offline.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      for (const deck of decks) {
+        const result = await sendDeck(name, deck);
+        if (result === 'no_such_user') {
+          setError('No one has that username.');
+          return;
+        }
+        if (result === 'self') {
+          setError('That is your own username.');
+          return;
+        }
+        if (result === 'inbox_full') {
+          setError('That inbox is full right now.');
+          return;
+        }
+      }
+      onDone(
+        decks.length === 1 ? `Sent "${decks[0].name}" to ${name}` : `Sent ${decks.length} decks to ${name}`,
+      );
+    } catch (err) {
+      setError(err instanceof OfflineError ? 'You are offline.' : 'Could not send that.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog
+      title={decks.length === 1 ? `Send "${decks[0].name}"` : `Send ${decks.length} decks`}
+      onClose={onClose}
+      footer={
+        <>
+          <button className="btn btn--quiet" onClick={onClose}>
+            Cancel
+          </button>
+          <span className="spacer" />
+          <button className="btn" onClick={() => void send()} disabled={!canSend}>
+            {busy ? 'Sending' : 'Send'}
+          </button>
+        </>
+      }
+    >
+      <label className="field">
+        <span className="field__label">Their username</span>
+        <input
+          className="input"
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            setError(null);
+          }}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="stegofan"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void send();
+          }}
+        />
+      </label>
+      <p className="hint">
+        They decide whether to add it. Nothing is added to their decks without them
+        accepting it.
+      </p>
+      {error && <p className="form__error">{error}</p>}
+    </Dialog>
   );
 }
 

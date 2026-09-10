@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stego — Privacy Policy</title>
+    <title>Stego · Privacy Policy</title>
     <style>
       :root {
         --bg: #dcdcc8;
@@ -99,7 +99,7 @@
 
       <p class="lede">
         Stego works fully offline and asks for nothing. There is no analytics, no advertising,
-        and no tracking of any kind. A sync account is optional; without one, nothing ever
+        and no tracking of any kind. A sync account is optional, and without one nothing ever
         leaves your device.
       </p>
 
@@ -113,7 +113,7 @@
       <h2>Sync accounts</h2>
       <p>
         You may optionally create an account so your decks are available on your other devices.
-        Every feature of Stego works without one.
+        Every feature of Stego works without one. You must be at least 13 to create one.
       </p>
       <p>If you create an account, the following is stored on the sync server:</p>
       <ul>
@@ -127,33 +127,51 @@
           Your appearance choices, but only while <em>Sync theme</em> is turned on for that
           device.
         </li>
+        <li>The usernames you have blocked, so those blocks keep working.</li>
       </ul>
       <p>
-        This data is used for one purpose only: showing you your own decks on your own devices.
-        It is never used for advertising, never profiled, and never shared. It is stored on
+        This data is used only to run the app: showing you your own decks on your own devices,
+        delivering a deck to someone you choose to send it to, and reviewing a deck that has
+        been reported. It is never used for advertising, never profiled, and never sold or
+        disclosed to anyone else. It is stored on
         infrastructure operated by
         <a href="https://supabase.com/privacy">Supabase</a>, which acts as the hosting provider.
       </p>
+      <h2>Sending and receiving decks</h2>
       <p>
-        You can delete your account at any time from Settings in the app. Deleting it
-        permanently erases the account and everything above from the server. The decks on your
-        device are kept, so nothing is lost locally.
+        If you send a deck to another Stego user, that deck and your username are stored on the
+        sync server until they accept or reject it. If someone sends you a deck, it waits in your
+        inbox and is never added to your library unless you choose to add it.
+      </p>
+      <p>
+        You can block any user from sending you decks, and you can report a deck you consider
+        abusive. A report sends the deck and the sender's username to the developer for review,
+        and is kept only as long as needed to act on it. Blocks and reports are managed in the
+        app under the inbox.
+      </p>
+
+      <h2>Deleting your account</h2>
+      <p>
+        You can delete your account at any time from <strong>Settings &rsaquo; Sync</strong>.
+        Deleting it permanently erases the account and everything stored with it from the
+        server, including anything still waiting in your inbox. The decks on your device are
+        kept, so nothing is lost locally.
       </p>
 
       <h2>iCloud</h2>
       <p>
-        If you are signed in to iCloud, Stego can save your decks to your own private iCloud
-        container so they stay in step across your devices. That data belongs to you and lives
-        in your personal Apple account. The developer cannot access it. Apple's handling of it
-        is governed by
+        On iPhone and iPad, Stego can save your decks to your own private iCloud container so
+        they stay in step across your Apple devices. This is separate from a sync account and
+        needs no account of ours. The Mac version does not use iCloud. That data belongs to you
+        and lives in your personal Apple account. The developer cannot access it. Apple's
+        handling of it is governed by
         <a href="https://www.apple.com/legal/privacy/">Apple's Privacy Policy</a>. If you prefer
         not to use iCloud, Stego keeps everything on the device instead.
       </p>
 
       <h2>Files you export</h2>
       <p>
-        Exporting a deck writes a JSON file to a location you choose. That file is yours; Stego
-        neither uploads it nor keeps a copy.
+        Exporting a deck writes a JSON file to a location you choose. That file is yours. Stego neither uploads it nor keeps a copy.
       </p>
 
       <h2>Data sharing</h2>
@@ -167,14 +185,21 @@
       <p>
         Stego contains no analytics frameworks, no advertising identifiers, and no tracking
         technologies. It never tracks you across apps or websites. Without a sync account it
-        makes no network requests at all; with one, it contacts the sync server only to send
+        makes no network requests at all. With one, it contacts the sync server only to send
         and receive your own decks.
       </p>
 
       <h2>Children</h2>
       <p>
-        Stego is safe for users of any age. It requests no personal information from anyone. A
-        sync account needs only a username, which you choose and which need not identify you.
+        Stego can be used on a device by anyone of any age. It requests no personal information
+        to do so, and nothing leaves the device.
+      </p>
+      <p>
+        A sync account is different, because it lets other users reach you by username.
+        <strong>You must be at least 13 to create an account</strong>, or older if the age of
+        digital consent where you live is higher. Accounts are not knowingly created for children
+        under that age. If you believe a child under 13 has created one, write to the address
+        below and it will be deleted.
       </p>
 
       <h2>Changes to this policy</h2>
@@ -188,6 +213,7 @@
         Questions about this policy can be sent to
         <a href="mailto:jonlee174@gmail.com">jonlee174@gmail.com</a>.
       </p>
+      <p><a href="rules.html">Community Rules</a> · <a href="support.html">Support</a></p>
     </main>
 
     <footer>Stego is an independent app. No data leaves your device unless you choose to sync or export it.</footer>
