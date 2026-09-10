@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { cloud } from './cloud';
-import type { AppSettings, Card, Deck, DeckFile } from '../types';
+import type { AppSettings, Card, Deck, DeckFile, Tombstone } from '../types';
 
 const DECKS_FILE = 'decks.json';
 const LOCAL_KEY = 'stego.decks.json';
@@ -37,11 +37,7 @@ interface Backend {
   location(): Promise<string>;
   /** Whether decks are being shared through iCloud on this platform. */
   syncing(): Promise<boolean>;
-  /**
-   * Calls back when the file changes underneath us. Returns a teardown.
-   * Every platform also re-reads on focus, which covers returning to the app
-   * after editing on another device.
-   */
+  /** Calls back when the file changes underneath us. Returns a teardown. */
   watch(onChange: (contents: string) => void): () => void;
 }
 
@@ -89,9 +85,8 @@ const nativeBackend: Backend = {
       const remote = await cloud.read(DECKS_FILE);
       if (remote !== null) return remote;
 
-      // Nothing in iCloud yet. Carry any local decks up now, because the caller treats
-      // whatever read() returns as already stored and skips the matching write,
-      // so deferring this would leave the container empty forever.
+      // The caller treats read()'s result as already stored and skips the
+      // write, so deferring this leaves the container empty forever.
       const local = await readLocal();
       if (local !== null) {
         try {
@@ -174,10 +169,7 @@ export function isSyncing(): Promise<boolean> {
   return backend().syncing().catch(() => false);
 }
 
-/**
- * Notifies when the deck file changes outside this app: a push from iCloud on
- * the desktop, or coming back to the app after editing on another device.
- */
+/** Fires when the deck file changes outside this app. */
 export function watchDecks(onChange: (decks: Deck[], raw: string) => void): () => void {
   let stopped = false;
 
@@ -200,9 +192,8 @@ export function watchDecks(onChange: (decks: Deck[], raw: string) => void): () =
   window.addEventListener('focus', reread);
   document.addEventListener('visibilitychange', reread);
 
-  // On a fresh install iCloud can take a few seconds to provision the container.
-  // Without these the app would sit on local storage until the user happened to
-  // background and reopen it.
+  // iCloud takes a few seconds to provision on a fresh install; without these
+  // the app sits on local storage until the next launch.
   const retries = [3000, 8000, 20000].map((delay) =>
     setTimeout(() => {
       if (!stopped) backend().read().then(deliver, () => {});
@@ -273,11 +264,32 @@ function slug(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'deck';
 }
 
-export function serializeDecks(decks: Deck[], settings?: AppSettings | null): string {
+export function serializeDecks(
+  decks: Deck[],
+  settings?: AppSettings | null,
+  deleted?: Tombstone[],
+): string {
   const file: DeckFile = { version: FILE_VERSION, decks };
   // Appearance travels in the same file as the decks, so it syncs the same way.
   if (settings) file.settings = settings;
+  if (deleted && deleted.length > 0) file.deleted = deleted;
   return JSON.stringify(file, null, 4);
+}
+
+export function parseTombstones(raw: string): Tombstone[] {
+  try {
+    const data: unknown = JSON.parse(raw);
+    const deleted = (data as { deleted?: unknown } | null)?.deleted;
+    if (!Array.isArray(deleted)) return [];
+    return deleted.flatMap((entry) => {
+      const t = (entry ?? {}) as Record<string, unknown>;
+      return typeof t.id === 'string' && typeof t.at === 'number'
+        ? [{ id: t.id, at: t.at }]
+        : [];
+    });
+  } catch {
+    return [];
+  }
 }
 
 /** Reads the appearance block, tolerating files written before it existed. */
@@ -286,13 +298,16 @@ export function parseSettings(raw: string): AppSettings | null {
     const data: unknown = JSON.parse(raw);
     const settings = (data as { settings?: unknown } | null)?.settings;
     if (!settings || typeof settings !== 'object') return null;
-    const { dino, palette, mode, skin } = settings as Record<string, unknown>;
+    const { dino, palette, mode, skin, syncTheme } = settings as Record<string, unknown>;
     const out: AppSettings = {};
     if (typeof dino === 'string') out.dino = dino;
     if (typeof palette === 'string') out.palette = palette;
     if (typeof skin === 'string') out.skin = skin;
+    if (typeof syncTheme === 'boolean') out.syncTheme = syncTheme;
     if (mode === 'auto' || mode === 'light' || mode === 'dark') out.mode = mode;
-    return out.dino || out.palette || out.skin || out.mode ? out : null;
+    return out.dino || out.palette || out.skin || out.mode || out.syncTheme !== undefined
+      ? out
+      : null;
   } catch {
     return null;
   }
@@ -309,6 +324,14 @@ export async function loadDecks(): Promise<Deck[]> {
   }
 }
 
+export async function loadRaw(): Promise<string | null> {
+  try {
+    return await backend().read();
+  } catch {
+    return null;
+  }
+}
+
 /** Appearance stored in the synced file, or null when it has none yet. */
 export async function loadSettings(): Promise<AppSettings | null> {
   try {
@@ -319,9 +342,13 @@ export async function loadSettings(): Promise<AppSettings | null> {
   }
 }
 
-export async function saveDecks(decks: Deck[], settings?: AppSettings | null): Promise<void> {
+export async function saveDecks(
+  decks: Deck[],
+  settings?: AppSettings | null,
+  deleted?: Tombstone[],
+): Promise<void> {
   try {
-    await backend().write(serializeDecks(decks, settings));
+    await backend().write(serializeDecks(decks, settings, deleted));
   } catch (err) {
     // A failed write must not take the UI down with it.
     console.error('Could not write decks.json', err);

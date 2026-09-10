@@ -2,8 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Electron's helper processes inherit the parent's sandbox rather than
-	     declaring their own. Required for a Mac App Store build to pass review. -->
+	<!-- Electron helpers inherit the parent sandbox rather than declaring one. -->
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
 	<key>com.apple.security.inherit</key>

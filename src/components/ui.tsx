@@ -159,6 +159,36 @@ export function Stepper({
   );
 }
 
+export function Toggle({
+  label,
+  hint,
+  checked,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="toggle"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+    >
+      <span className="toggle__text">
+        <span className="toggle__label">{label}</span>
+        {hint && <span className="toggle__hint">{hint}</span>}
+      </span>
+      <span className="toggle__track" aria-hidden="true">
+        <span className="toggle__knob" />
+      </span>
+    </button>
+  );
+}
+
 export function Segmented<T extends string>({
   value,
   options,

@@ -5,9 +5,7 @@
    #B8BC86  light olive                #44693D  hunter green
    #21421E  myrtle                     #A0A579  aged avocado                  */
 
-/* Both faces are SIL Open Font License, which permits embedding in a
-   distributed app. Licenses ship alongside them in assets/fonts/.
-   Anton stands in for the old display face; Arvo for Rockwell. */
+/* SIL Open Font License. The license files must ship in assets/fonts/. */
 @font-face {
   font-family: 'Anton';
   src: url('../../assets/fonts/Anton.ttf') format('truetype');
@@ -27,14 +25,9 @@
 }
 
 /* ---------------------------------------------------------------- themes
-
-   Each palette below declares a light (--l-) and a dark (--d-) value for every
-   color in the interface. The two mapping blocks after them pick a side, so a
-   new theme is one block rather than one per color scheme.
-
-   The --dino-* trio is this palette's body, detail and highlight tones. The
-   illustrations are recolored ahead of time by tools/recolor-dinos.mjs, so
-   these now only drive borders, meters and gradients.                        */
+   Each palette declares a light (--l-) and dark (--d-) value per color; the two
+   mapping blocks below pick a side. --dino-* only drives borders and gradients,
+   since the illustrations are recolored ahead of time.                       */
 
 :root,
 [data-palette='green'] {
@@ -793,8 +786,10 @@ textarea {
 }
 
 .toast {
-  background: var(--myrtle);
-  color: var(--on-dark);
+  /* Inverted against the page. Naming an undefined token here (--myrtle) left
+     the pill transparent, with near-white text straight on the page. */
+  background: var(--ink);
+  color: var(--bg);
   font-family: var(--font-display);
   font-size: 0.86rem;
   padding: 11px 18px;
@@ -806,6 +801,7 @@ textarea {
   gap: 8px;
 }
 
+/* --bad flips with the theme, so the inherited --bg text works either way. */
 .toast--bad {
   background: var(--bad);
 }

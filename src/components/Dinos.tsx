@@ -1,14 +1,8 @@
 import type { DinoName, Palette } from '../state/theme';
 import { usePalette } from '../state/theme';
 
-/**
- * Every dinosaur exists once per palette, generated from the source drawings by
- * `tools/recolor-dinos.mjs`. Recoloring ahead of time rather than at runtime
- * keeps the shading and the black outlines intact, which a CSS filter or mask
- * could not do.
- *
- * `stegosaurus-green` is the original artwork, copied rather than regenerated.
- */
+// Recolored ahead of time by tools/recolor-dinos.mjs, which keeps the shading
+// and outlines a CSS filter would flatten. stegosaurus-green is the original.
 import stegosaurusGreen from '../../assets/images/themed/stegosaurus-green.png';
 import stegosaurusRed from '../../assets/images/themed/stegosaurus-red.png';
 import stegosaurusBlue from '../../assets/images/themed/stegosaurus-blue.png';
@@ -82,10 +76,7 @@ function dinoArt(name: DinoName, palette: Palette): string {
   return ART[name]?.[palette] ?? ART.stegosaurus.green;
 }
 
-/**
- * A dinosaur in a color you name. The settings picker uses this to show every
- * animal in the same neutral color, so that choice is only about the shape.
- */
+/** Color is named, so the settings picker can show every animal in one tone. */
 export function Dino({
   name,
   palette,

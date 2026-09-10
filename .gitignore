@@ -4,20 +4,15 @@ release/
 *.tsbuildinfo
 *.log
 
-# Capacitor / iOS build output
 ios/App/Pods/
 ios/App/App/public/
 ios/App/App/capacitor.config.json
 ios/App/App/config.xml
 ios/DerivedData/
 
-# Xcode per-user state: window layout, breakpoints, selected scheme.
-# Carries your macOS username and causes noisy diffs between machines.
 **/xcuserdata/
 *.xcuserstate
 
-# Signing material. None of this is in the repo today; the rule is here so it
-# can never be added by accident.
 *.p12
 *.p8
 *.cer
@@ -25,7 +20,9 @@ ios/DerivedData/
 *.mobileprovision
 ios/App/App/*.entitlements.bak
 
-# Local tool + editor state
+.env
+.env.local
+
 .claude/settings.local.json
 .vscode/
 .idea/

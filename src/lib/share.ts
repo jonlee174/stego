@@ -1,10 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
-import { exportJson } from './transfer';
-
-/** Extension registered in Info.plist so iOS opens these files in Stego. */
-export const DECK_EXTENSION = 'stegodeck';
+import { DECK_EXTENSION, exportJson } from './transfer';
 
 /** Whether the native share sheet, and so iMessage, is reachable here. */
 export function canShare(): boolean {
@@ -16,12 +13,8 @@ function safeName(name: string): string {
   return (cleaned || 'Stego decks').slice(0, 60);
 }
 
-/**
- * Hands the deck file to the system share sheet, which is where iMessage, Mail
- * and AirDrop live. The file is written to the cache first because the sheet
- * shares a file URL rather than raw text, and a real attachment is what lets
- * the person receiving it open the deck straight into Stego.
- */
+// Written to the cache first: the sheet shares a file URL, and a real
+// attachment is what opens straight into the recipient's Stego.
 export async function shareDecks(title: string, contents: string): Promise<void> {
   const filename = `${safeName(title)}.${DECK_EXTENSION}`;
 

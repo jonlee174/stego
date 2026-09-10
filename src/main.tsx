@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { DecksProvider } from './state/decks';
+import { AccountProvider } from './state/account';
 import { ToastProvider } from './components/Toast';
 import { applyStoredTheme, syncSystemChrome } from './state/theme';
 import './styles/theme.css';
@@ -23,7 +24,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
       <DecksProvider>
-        <App />
+        {/* Account sits inside Decks because syncing reads and replaces the
+            library it holds. */}
+        <AccountProvider>
+          <App />
+        </AccountProvider>
       </DecksProvider>
     </ToastProvider>
   </StrictMode>,

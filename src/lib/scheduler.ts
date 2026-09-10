@@ -1,12 +1,7 @@
 import type { Card, ReviewState } from '../types';
 
-/**
- * Spaced repetition, SM-2 driven by a self reported difficulty.
- *
- * How hard a card felt is something only the responder knows. Timing was tried
- * as a proxy and dropped: it cannot tell a confident answer from a lucky guess,
- * and it punishes long cards and slow readers for the wrong reasons.
- */
+// SM-2, driven by a self reported verdict. Timing was tried and dropped: it
+// cannot tell a confident answer from a lucky guess.
 
 export const DAY_MS = 86_400_000;
 /** A missed card comes back within the same session rather than tomorrow. */
@@ -19,20 +14,24 @@ export function newReviewState(): ReviewState {
   return { ease: START_EASE, interval: 0, due: 0, reps: 0, lapses: 0 };
 }
 
-/**
- * What the responder says about the card they just saw.
- *
- * Two ratings, not four. Hard and Easy were dropped: deciding between four
- * shades of "sort of knew it" is a judgement call on every single card, and the
- * lapse count is what actually moves the schedule.
- */
-export type Difficulty = 'again' | 'good';
+// Asked in two steps: what happened, then how hard it felt. One row of four
+// ratings made every card a judgement call.
+export type Outcome = 'again' | 'got-it';
+export type Effort = 'easy' | 'medium' | 'hard';
 
-/** The SM-2 grade each rating maps to. Anything under 3 triggers relearning. */
-const GRADES: Record<Difficulty, number> = { again: 1, good: 4 };
+export interface Verdict {
+  outcome: Outcome;
+  effort: Effort;
+}
 
-export function gradeFor(difficulty: Difficulty): number {
-  return GRADES[difficulty];
+/** Under 3 is a lapse, so every miss relearns regardless of effort. */
+const GRADES: Record<Outcome, Record<Effort, number>> = {
+  'got-it': { easy: 5, medium: 4, hard: 3 },
+  again: { easy: 2, medium: 1, hard: 1 },
+};
+
+export function gradeFor(verdict: Verdict): number {
+  return GRADES[verdict.outcome][verdict.effort];
 }
 
 /** A card missed this many times is the card's fault, not the learner's. */
@@ -62,9 +61,10 @@ export function schedule(
   }
 
   const reps = state.reps + 1;
+  // Hard work creeps forward instead of multiplying by the full ease.
+  const growth = grade === 3 ? Math.max(1.2, state.ease - 0.8) : state.ease;
   const interval =
-    reps === 1 ? 1 : reps === 2 ? 6 : Math.max(1, Math.round(state.interval * state.ease));
-  // The standard SM-2 ease adjustment: 5 nudges it up, 3 nudges it down.
+    reps === 1 ? 1 : reps === 2 ? 6 : Math.max(1, Math.round(state.interval * growth));
   const ease = Math.max(MIN_EASE, state.ease + 0.1 - (5 - grade) * (0.08 + (5 - grade) * 0.02));
 
   return {
@@ -90,15 +90,4 @@ export function dueCards(cards: Card[], now: number = Date.now()): Card[] {
 
 export function dueCount(cards: Card[], now: number = Date.now()): number {
   return cards.reduce((total, card) => total + (isDue(card, now) ? 1 : 0), 0);
-}
-
-/** Human wording for when a card comes back, used in the study summary. */
-export function describeNext(state: ReviewState, now: number = Date.now()): string {
-  const ms = state.due - now;
-  if (ms <= RELEARN_MS) return 'again shortly';
-  const days = Math.round(ms / DAY_MS);
-  if (days <= 1) return 'tomorrow';
-  if (days < 30) return `in ${days} days`;
-  const months = Math.round(days / 30);
-  return months <= 1 ? 'in a month' : `in ${months} months`;
 }

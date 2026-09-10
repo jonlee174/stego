@@ -9,17 +9,7 @@ const DEV_URL = process.env.STEGO_DEV_URL;
 /** Must match the iCloud container on the iOS side for the two to share a file. */
 const ICLOUD_CONTAINER = 'iCloud.com.jonlee.stego';
 
-/**
- * iCloud exposes a container at ~/Library/Mobile Documents/<id with dots as
- * tildes>/Documents. It only exists once the container has been provisioned,
- * which happens after the iOS app runs once under the same Apple ID.
- */
-/**
- * Inside the App Sandbox, os.homedir() is the app's container
- * (~/Library/Containers/<bundle id>/Data), not the user's home. The ubiquity
- * container lives under the *real* home, so peel the container suffix back off.
- * Unsandboxed builds fall through unchanged.
- */
+// Sandboxed, os.homedir() is the app container, not the user's home.
 function realHome() {
   const home = os.homedir();
   const marker = `${path.sep}Library${path.sep}Containers${path.sep}`;
@@ -40,11 +30,7 @@ function icloudDir() {
   return path.join(icloudContainer(), 'Documents');
 }
 
-/**
- * The window frame is painted by the OS before the page loads and while the
- * window is inactive, so the last theme's background is remembered between
- * launches. Otherwise every start would flash the default green.
- */
+// Remembered between launches, or every start flashes the default green.
 function chromeFile() {
   return path.join(app.getPath('userData'), 'window-background');
 }
@@ -62,17 +48,8 @@ function localFile() {
   return path.join(app.getPath('userData'), 'decks.json');
 }
 
-/** The iCloud copy when it is available, otherwise a plain local file. */
-/**
- * The desktop build always stores decks locally.
- *
- * It used to write into the app's iCloud container folder, but iCloud never
- * synced that folder: a ubiquity container only starts syncing once an entitled
- * process claims it through url(forUbiquityContainerIdentifier:) and writes
- * through NSFileCoordinator, neither of which Electron can do. The result
- * looked like sync while being an ordinary local folder in a confusing place.
- * Decks move between the phone and the Mac by export and import instead.
- */
+// Local only. Electron cannot claim a ubiquity container, so writing to the
+// iCloud folder looked like sync while never syncing. See AGENTS.md.
 function DECKS_FILE() {
   return localFile();
 }
@@ -134,11 +111,7 @@ function createWindow() {
   watchDecks();
 }
 
-/**
- * Polls the deck file so edits synced down from another device show up without
- * a restart. Polling rather than fs.watch because iCloud swaps the file out
- * from under us rather than writing in place.
- */
+// Polled rather than fs.watch: the file gets swapped out, not written in place.
 function watchDecks() {
   const target = DECKS_FILE();
   if (watched === target) return;
@@ -260,10 +233,16 @@ ipcMain.handle('decks:path', async () => DECKS_FILE());
 ipcMain.handle('decks:syncing', async () => false);
 
 ipcMain.handle('decks:export', async (_event, filename, contents) => {
+  // Must match the extension already on the suggested name, or the macOS save
+  // panel rejects its own suggestion and offers to double the extension.
+  const ext = path.extname(filename).replace(/^\./, '') || 'json';
   const { canceled, filePath } = await dialog.showSaveDialog(mainWindow ?? undefined, {
     title: 'Export decks',
     defaultPath: path.join(app.getPath('downloads'), filename),
-    filters: [{ name: 'JSON', extensions: ['json'] }],
+    filters: [
+      { name: 'Stego deck', extensions: [ext] },
+      { name: 'All files', extensions: ['*'] },
+    ],
   });
   if (canceled || !filePath) return null;
   await fs.writeFile(filePath, contents, 'utf8');

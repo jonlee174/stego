@@ -1,9 +1,6 @@
 import type { GradedQuestion, Question, ResponseMap, Test, TestResult } from '../types';
 
-/**
- * Lowercase, drop punctuation/accents, collapse whitespace and strip a leading
- * article so "The T. rex" and "t rex" grade the same.
- */
+/** So "The T. rex" and "t rex" grade the same. */
 export function normalize(text: string): string {
   const base = text
     .normalize('NFD')
@@ -87,11 +84,7 @@ export function questionWeight(question: Question): number {
   return question.type === 'matching' ? question.pairs.length : 1;
 }
 
-/**
- * Per-card outcomes from a finished test, so results can feed the review
- * schedule. A matching block reports each pair separately, since getting one
- * pair wrong says nothing about the others.
- */
+/** Per-card outcomes for the scheduler. Matching pairs report separately. */
 export function cardOutcomes(result: TestResult): { cardId: string; correct: boolean }[] {
   const outcomes: { cardId: string; correct: boolean }[] = [];
 

@@ -36,6 +36,15 @@ export interface AppSettings {
   mode?: 'auto' | 'light' | 'dark';
   /** Written by the version that bundled dinosaur and color into one choice. */
   skin?: string;
+  /** Per device, never pushed to the server. */
+  syncTheme?: boolean;
+}
+
+/** A deletion, remembered so a sync cannot resurrect the deck. */
+export interface Tombstone {
+  id: string;
+  /** Epoch ms the deletion happened. */
+  at: number;
 }
 
 /** Shape of the on-disk decks.json file. */
@@ -43,17 +52,13 @@ export interface DeckFile {
   version: number;
   decks: Deck[];
   settings?: AppSettings;
+  deleted?: Tombstone[];
 }
 
 /** Which side of the card a question shows as the prompt. */
 export type Direction = 'front-to-back' | 'back-to-front' | 'mixed';
 
-/**
- * How a study run picks its cards.
- * all: the whole deck, paged freely.
- * due: only what the schedule says is ready.
- * dynamic: the whole deck, but a card rated Again comes back until it is known.
- */
+/** all: the whole deck. due: what is scheduled. dynamic: repeats what you miss. */
 export type StudyMode = 'all' | 'due' | 'dynamic';
 
 export interface WrittenQuestion {

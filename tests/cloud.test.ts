@@ -1,10 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * Regression cover for the bug that shipped in 1.1: a fresh App Store install
- * probes iCloud before iOS has finished provisioning the container, gets a
- * `false`, and — because the answer was cached forever — never used iCloud again.
- */
+// Regression cover for 1.1: a fresh install probed iCloud before provisioning
+// finished, cached the false forever, and never used iCloud again.
 
 const probe = vi.fn();
 

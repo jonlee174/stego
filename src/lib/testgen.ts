@@ -40,10 +40,7 @@ function answerSide(card: Card, flipped: boolean): string {
   return flipped ? card.front : card.back;
 }
 
-/**
- * Hands out cards without repeating one until the whole pool has been used.
- * Only matters when the requested question count exceeds the pool.
- */
+/** No repeats until the pool is exhausted. Only matters past the pool size. */
 function dealer(pool: Card[], rand: () => number) {
   let queue: Card[] = [];
   const refill = () => {

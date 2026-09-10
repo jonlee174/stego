@@ -1,10 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-/**
- * A short burst of confetti, drawn on a canvas in the theme's own colors.
- * Written by hand rather than pulled from a library: it is about forty lines
- * and avoids shipping a dependency for one animation.
- */
+/** A short burst in the theme's own colors. Hand drawn to avoid a dependency. */
 export function Confetti({ onDone }: { onDone?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

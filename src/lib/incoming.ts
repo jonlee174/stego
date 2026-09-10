@@ -1,14 +1,8 @@
 import { App, type URLOpenListenerEvent } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import { DECK_EXTENSION } from './share';
+import { DECK_EXTENSION } from './transfer';
 import { cloud } from './cloud';
-
-/**
- * A deck someone sent. iOS hands the app a file URL when a `.stegodeck`
- * attachment is tapped in Messages, Mail or Files, and this turns that into the
- * file's contents so the decks inside can be added.
- */
 
 /** Strips the file:// wrapper and percent-encoding iOS puts on the path. */
 function toPath(url: string): string {
@@ -25,9 +19,8 @@ function looksLikeDeck(url: string): boolean {
 }
 
 async function readShared(url: string): Promise<string | null> {
-  // A URL handed over by Messages or AirDrop is security scoped, so it has to
-  // be read natively. The Filesystem plugin cannot claim that access and the
-  // read fails silently, which looks like the deck simply never arriving.
+  // Security scoped, so it must be read natively. The Filesystem plugin cannot
+  // claim that access and fails silently.
   const native = await cloud.readIncoming(url);
   if (native !== null) return native;
 
@@ -50,10 +43,7 @@ async function readShared(url: string): Promise<string | null> {
   }
 }
 
-/**
- * Calls back with the contents of any deck file opened from outside the app.
- * Returns a teardown. Does nothing off native, where there is no share sheet.
- */
+/** Fires for a deck file opened from outside the app. Native only. */
 export function watchIncomingDecks(onDeckFile: (contents: string) => void): () => void {
   if (!Capacitor.isNativePlatform()) return () => {};
 

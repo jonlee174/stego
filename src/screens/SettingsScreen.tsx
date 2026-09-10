@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { Nav } from '../App';
-import { TopBar, Segmented } from '../components/ui';
+import { ConfirmDialog, TopBar, Segmented, Toggle } from '../components/ui';
 import { Dino } from '../components/Dinos';
-import { IconCheck } from '../components/Icons';
+import { IconCheck, IconRestart } from '../components/Icons';
+import { useToast } from '../components/Toast';
 import {
   DINOS,
   PALETTES,
   useDino,
   usePalette,
+  useSyncTheme,
   useTheme,
   type ThemePref,
 } from '../state/theme';
+import { useAccount } from '../state/account';
+import { OfflineError } from '../lib/supabase';
 import { isSyncing, storageKind, storageLocation } from '../lib/storage';
 
 export default function SettingsScreen({ nav }: { nav: Nav }) {
@@ -108,6 +112,8 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
             />
           </div>
 
+          <AccountPanel nav={nav} />
+
           <div className="panel stack">
             <div className="panel__head">
               <span className="panel__title">Storage</span>
@@ -124,5 +130,99 @@ export default function SettingsScreen({ nav }: { nav: Nav }) {
         </div>
       </div>
     </section>
+  );
+}
+
+/** Hidden when the build has no Supabase credentials. */
+function AccountPanel({ nav }: { nav: Nav }) {
+  const { configured, username, signedIn, state, lastSyncedAt, sync, signOut, deleteAccount } =
+    useAccount();
+  const [syncTheme, setSyncTheme] = useSyncTheme();
+  const toast = useToast();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  if (!configured) return null;
+
+  async function syncNow() {
+    try {
+      await sync();
+      toast('Decks synced');
+    } catch (err) {
+      toast(
+        err instanceof OfflineError ? 'You are offline' : 'Could not sync, try again later',
+        'bad',
+      );
+    }
+  }
+
+  return (
+    <div className="panel stack">
+      <div className="panel__head">
+        <span className="panel__title">Sync</span>
+      </div>
+
+      {signedIn ? (
+        <>
+          <p className="hint">
+            Signed in as <strong>{username}</strong>. Decks sync when the app opens and
+            whenever you sync by hand.
+          </p>
+
+          <Toggle
+            label="Sync theme"
+            hint="Take the dinosaur, color and appearance from this account. Leave it off to let this device keep its own look."
+            checked={syncTheme}
+            onChange={setSyncTheme}
+          />
+
+          <button
+            className="btn btn--block"
+            onClick={() => void syncNow()}
+            disabled={state === 'syncing'}
+          >
+            <IconRestart className="btn__icon" />
+            {state === 'syncing' ? 'Syncing' : 'Sync now'}
+          </button>
+
+          {lastSyncedAt && (
+            <p className="hint">Last synced {new Date(lastSyncedAt).toLocaleTimeString()}.</p>
+          )}
+
+          <button className="btn btn--ghost btn--block" onClick={() => void signOut()}>
+            Sign out
+          </button>
+
+          <button className="btn btn--danger btn--block" onClick={() => setConfirmDelete(true)}>
+            Delete account
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="hint">
+            {username
+              ? `You are signed out. Sign back in as ${username} to sync again.`
+              : 'Keep your decks on every device with a username and a password. Stego works fully offline without one.'}
+          </p>
+          <button className="btn btn--block" onClick={() => nav.go({ name: 'account' })}>
+            Sign in or create an account
+          </button>
+        </>
+      )}
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this account?"
+          body="This erases the account and everything stored on the server. The decks on this device are kept."
+          confirmLabel="Delete account"
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            setConfirmDelete(false);
+            void deleteAccount()
+              .then(() => toast('Account deleted'))
+              .catch(() => toast('Could not delete the account', 'bad'));
+          }}
+        />
+      )}
+    </div>
   );
 }

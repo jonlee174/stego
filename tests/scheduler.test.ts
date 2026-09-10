@@ -3,7 +3,6 @@ import {
   DAY_MS,
   RELEARN_MS,
   LEECH_THRESHOLD,
-  describeNext,
   dueCards,
   dueCount,
   gradeFor,
@@ -11,6 +10,8 @@ import {
   isLeech,
   newReviewState,
   schedule,
+  type Effort,
+  type Outcome,
 } from '../src/lib/scheduler';
 import type { Card } from '../src/types';
 
@@ -21,44 +22,68 @@ const card = (id: string, review?: Card['review']): Card => ({
   ...(review ? { review } : {}),
 });
 
+const v = (outcome: Outcome, effort: Effort) => ({ outcome, effort });
+
 describe('gradeFor', () => {
-  it('puts Again below the passing threshold and Good above it', () => {
-    expect(gradeFor('again')).toBeLessThan(3);
-    expect(gradeFor('good')).toBeGreaterThanOrEqual(3);
+  it('puts every miss below the passing threshold', () => {
+    for (const effort of ['easy', 'medium', 'hard'] as const) {
+      expect(gradeFor(v('again', effort))).toBeLessThan(3);
+    }
+  });
+
+  it('puts every pass at or above it', () => {
+    for (const effort of ['easy', 'medium', 'hard'] as const) {
+      expect(gradeFor(v('got-it', effort))).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('orders a pass by how much work it was', () => {
+    expect(gradeFor(v('got-it', 'hard'))).toBeLessThan(gradeFor(v('got-it', 'medium')));
+    expect(gradeFor(v('got-it', 'medium'))).toBeLessThan(gradeFor(v('got-it', 'easy')));
   });
 });
 
-describe('difficulty drives the schedule', () => {
+describe('the verdict drives the schedule', () => {
   const now = 1_000_000_000_000;
 
-  /** Runs the same rating repeatedly and reports where the card lands. */
-  const drill = (rating: Parameters<typeof gradeFor>[0], times: number) => {
+  /** Runs the same verdict repeatedly and reports where the card lands. */
+  const drill = (outcome: Outcome, effort: Effort, times: number) => {
     let state = newReviewState();
-    for (let i = 0; i < times; i++) state = schedule(state, gradeFor(rating), now);
+    for (let i = 0; i < times; i++) state = schedule(state, gradeFor(v(outcome, effort)), now);
     return state;
   };
 
-  it('stretches a card that keeps being known', () => {
-    expect(drill('good', 5).interval).toBeGreaterThan(drill('good', 3).interval);
+  it('stretches Easy further than Medium, and Medium further than Hard', () => {
+    expect(drill('got-it', 'easy', 5).interval).toBeGreaterThan(
+      drill('got-it', 'medium', 5).interval,
+    );
+    expect(drill('got-it', 'medium', 5).interval).toBeGreaterThan(
+      drill('got-it', 'hard', 5).interval,
+    );
   });
 
-  it('sends Again back within the session every time', () => {
-    expect(drill('again', 3).due).toBe(now + RELEARN_MS);
-    expect(drill('again', 3).lapses).toBe(3);
+  it('keeps a hard-won card close rather than letting it run away', () => {
+    // Five passes rated Hard should still be well inside a month.
+    expect(drill('got-it', 'hard', 5).interval).toBeLessThan(30);
   });
 
-  it('holds ease steady on Good and drops it on Again', () => {
-    expect(drill('good', 3).ease).toBe(newReviewState().ease);
-    expect(drill('again', 3).ease).toBeLessThan(newReviewState().ease);
+  it('sends a miss back within the session every time', () => {
+    expect(drill('again', 'medium', 3).due).toBe(now + RELEARN_MS);
+    expect(drill('again', 'medium', 3).lapses).toBe(3);
+  });
+
+  it('lowers ease for Hard and raises it for Easy', () => {
+    expect(drill('got-it', 'hard', 3).ease).toBeLessThan(newReviewState().ease);
+    expect(drill('got-it', 'easy', 3).ease).toBeGreaterThan(newReviewState().ease);
   });
 
   it('sets a card back to square one after a miss', () => {
-    let state = drill('good', 4);
+    let state = drill('got-it', 'medium', 4);
     expect(state.interval).toBeGreaterThan(6);
-    state = schedule(state, gradeFor('again'), now);
+    state = schedule(state, gradeFor(v('again', 'hard')), now);
     expect(state.reps).toBe(0);
     // The next pass restarts the ladder rather than resuming where it was.
-    expect(schedule(state, gradeFor('good'), now).interval).toBe(1);
+    expect(schedule(state, gradeFor(v('got-it', 'medium')), now).interval).toBe(1);
   });
 });
 
@@ -132,13 +157,3 @@ describe('due selection', () => {
   });
 });
 
-describe('describeNext', () => {
-  const now = 3_000_000_000_000;
-
-  it('describes each horizon in plain words', () => {
-    expect(describeNext({ ...newReviewState(), due: now + RELEARN_MS }, now)).toBe('again shortly');
-    expect(describeNext({ ...newReviewState(), due: now + DAY_MS }, now)).toBe('tomorrow');
-    expect(describeNext({ ...newReviewState(), due: now + 5 * DAY_MS }, now)).toBe('in 5 days');
-    expect(describeNext({ ...newReviewState(), due: now + 90 * DAY_MS }, now)).toBe('in 3 months');
-  });
-});

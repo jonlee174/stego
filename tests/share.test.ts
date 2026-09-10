@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseDeckFile, serializeDecks } from '../src/lib/storage';
 
-/**
- * A shared deck is just the export file under a different extension, so the
- * thing that matters is that what one device writes, another can read back and
- * add without losing cards.
- */
+// A shared deck is the export file renamed, so what matters is the round trip.
 describe('a deck sent to someone else', () => {
   const deck = {
     id: 'd1',

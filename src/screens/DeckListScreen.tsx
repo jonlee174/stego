@@ -6,6 +6,7 @@ import { ConfirmDialog, Dialog, EmptyState, TopBar } from '../components/ui';
 import { IconShare } from '../components/Icons';
 import {
   IconCards,
+  IconCheck,
   IconCopy,
   IconRestart,
   IconDownload,
@@ -34,8 +35,9 @@ export default function DeckListScreen({
   const toast = useToast();
   const [query, setQuery] = useState('');
   const [pendingDelete, setPendingDelete] = useState<Deck | null>(null);
-  const [importText, setImportText] = useState<string | null>(null);
-  const [exporting, setExporting] = useState(false);
+  // Null means that step is not on screen.
+  const [picking, setPicking] = useState<string[] | null>(null);
+  const [exporting, setExporting] = useState<string[] | null>(null);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -50,22 +52,32 @@ export default function DeckListScreen({
 
   const title = intent === 'study' ? 'Study a deck' : intent === 'test' ? 'Test yourself' : 'Your decks';
 
-  const exportTitle = decks.length === 1 ? decks[0].name : 'Stego decks';
+  /** One deck exports under its own name; several travel as a set. */
+  function titleFor(deckIds: string[]): string {
+    if (deckIds.length !== 1) return 'Stego decks';
+    return decks.find((d) => d.id === deckIds[0])?.name ?? 'Stego decks';
+  }
 
-  async function onSaveToFiles() {
-    setExporting(false);
+  /** Off a phone there is no share sheet, so skip the one-option chooser. */
+  function chooseDestination(deckIds: string[]) {
+    if (canShare()) setExporting(deckIds);
+    else void onSaveToFiles(deckIds);
+  }
+
+  async function onSaveToFiles(deckIds: string[]) {
+    setExporting(null);
     try {
-      toast(await saveDecksToFiles(exportTitle, exportFile()));
+      toast(await saveDecksToFiles(titleFor(deckIds), exportFile(deckIds)));
     } catch (err) {
       if (err instanceof ExportCancelled) return;
       toast('Could not save the file', 'bad');
     }
   }
 
-  async function onShare() {
-    setExporting(false);
+  async function onShare(deckIds: string[]) {
+    setExporting(null);
     try {
-      await shareDecks(exportTitle, exportFile());
+      await shareDecks(titleFor(deckIds), exportFile(deckIds));
     } catch {
       // Dismissing the share sheet lands here too, so stay quiet about it.
     }
@@ -74,18 +86,15 @@ export default function DeckListScreen({
   async function onImport() {
     const raw = await pickJsonFile();
     if (raw === null) return;
-    setImportText(raw);
-  }
-
-  function runImport(mode: 'merge' | 'replace') {
-    if (importText === null) return;
     try {
-      const count = importFile(importText, mode);
-      toast(count === 0 ? 'No decks found in that file' : `Imported ${count} deck${count === 1 ? '' : 's'}`, count === 0 ? 'bad' : 'good');
+      const count = importFile(raw);
+      toast(
+        count === 0 ? 'No decks found in that file' : `Imported ${count} deck${count === 1 ? '' : 's'}`,
+        count === 0 ? 'bad' : 'good',
+      );
     } catch {
       toast('That file is not a Stego deck file', 'bad');
     }
-    setImportText(null);
   }
 
   return (
@@ -101,9 +110,8 @@ export default function DeckListScreen({
             </button>
             <button
               className="btn btn--quiet btn--sm"
-              // Off a phone there is no share sheet, so a chooser with one
-              // option would be pointless: just save.
-              onClick={() => (canShare() ? setExporting(true) : onSaveToFiles())}
+              onClick={() => setPicking(decks.map((d) => d.id))}
+              disabled={decks.length === 0}
               title="Export decks"
             >
               <IconDownload className="btn__icon" />
@@ -160,6 +168,7 @@ export default function DeckListScreen({
                     duplicateDeck(deck.id);
                     toast('Deck duplicated');
                   }}
+                  onExport={() => chooseDestination([deck.id])}
                   onDelete={() => setPendingDelete(deck)}
                 />
               ))}
@@ -183,20 +192,37 @@ export default function DeckListScreen({
         />
       )}
 
+      {picking && (
+        <DeckPicker
+          decks={decks}
+          selected={picking}
+          onChange={setPicking}
+          onCancel={() => setPicking(null)}
+          onConfirm={() => {
+            const chosen = picking;
+            setPicking(null);
+            chooseDestination(chosen);
+          }}
+        />
+      )}
+
       {exporting && (
         <Dialog
-          title="Export decks"
-          onClose={() => setExporting(false)}
+          title={exporting.length === 1 ? `Export "${titleFor(exporting)}"` : 'Export decks'}
+          onClose={() => setExporting(null)}
           footer={
             <>
               <span className="spacer" />
-              <button className="btn btn--quiet" onClick={() => setExporting(false)}>
+              <button className="btn btn--quiet" onClick={() => setExporting(null)}>
                 Cancel
               </button>
             </>
           }
         >
-          <button className="btn btn--ghost btn--block export-choice" onClick={onSaveToFiles}>
+          <button
+            className="btn btn--ghost btn--block export-choice"
+            onClick={() => onSaveToFiles(exporting)}
+          >
             <IconDownload className="btn__icon" />
             <span>
               <strong>Save to Files</strong>
@@ -205,7 +231,10 @@ export default function DeckListScreen({
           </button>
 
           {canShare() && (
-            <button className="btn btn--ghost btn--block export-choice" onClick={onShare}>
+            <button
+              className="btn btn--ghost btn--block export-choice"
+              onClick={() => onShare(exporting)}
+            >
               <IconShare className="btn__icon" />
               <span>
                 <strong>Share with others</strong>
@@ -216,31 +245,74 @@ export default function DeckListScreen({
         </Dialog>
       )}
 
-      {importText !== null && (
-        <Dialog
-          title="Import decks"
-          onClose={() => setImportText(null)}
-          footer={
-            <>
-              <button className="btn btn--quiet" onClick={() => setImportText(null)}>
-                Cancel
-              </button>
-              <span className="spacer" />
-              <button className="btn btn--ghost" onClick={() => runImport('replace')}>
-                Replace all
-              </button>
-              <button className="btn" onClick={() => runImport('merge')}>
-                Add to my decks
-              </button>
-            </>
-          }
-        >
-          <p className="muted">
-            Add the decks in this file alongside your own, or replace everything you have with it?
-          </p>
-        </Dialog>
-      )}
     </section>
+  );
+}
+
+function DeckPicker({
+  decks,
+  selected,
+  onChange,
+  onCancel,
+  onConfirm,
+}: {
+  decks: Deck[];
+  selected: string[];
+  onChange: (ids: string[]) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const all = selected.length === decks.length;
+
+  const toggle = (id: string) =>
+    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+
+  return (
+    <Dialog
+      title="Which decks?"
+      onClose={onCancel}
+      footer={
+        <>
+          <button className="btn btn--quiet" onClick={onCancel}>
+            Cancel
+          </button>
+          <span className="spacer" />
+          <button className="btn" onClick={onConfirm} disabled={selected.length === 0}>
+            Export {selected.length}
+          </button>
+        </>
+      }
+    >
+      <button
+        className="btn btn--ghost btn--block picker__row"
+        onClick={() => onChange(all ? [] : decks.map((d) => d.id))}
+        aria-pressed={all}
+      >
+        <span className="picker__box">{all && <IconCheck className="btn__icon" />}</span>
+        <span className="picker__name">All decks</span>
+      </button>
+
+      <ul className="picker__list">
+        {decks.map((deck) => {
+          const on = selected.includes(deck.id);
+          return (
+            <li key={deck.id}>
+              <button
+                className="btn btn--ghost btn--block picker__row"
+                onClick={() => toggle(deck.id)}
+                aria-pressed={on}
+              >
+                <span className="picker__box">{on && <IconCheck className="btn__icon" />}</span>
+                <span className="picker__name">{deck.name}</span>
+                <span className="picker__count">
+                  {deck.cards.length} {deck.cards.length === 1 ? 'card' : 'cards'}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </Dialog>
   );
 }
 
@@ -253,6 +325,7 @@ function DeckTile({
   onTest,
   onEdit,
   onDuplicate,
+  onExport,
   onDelete,
 }: {
   deck: Deck;
@@ -263,6 +336,7 @@ function DeckTile({
   onTest: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
+  onExport: () => void;
   onDelete: () => void;
 }) {
   const testable = usableCards(deck).length;
@@ -317,6 +391,13 @@ function DeckTile({
         </button>
         <button className="btn btn--quiet btn--icon" onClick={onDuplicate} title="Duplicate deck">
           <IconCopy className="btn__icon" />
+        </button>
+        <button
+          className="btn btn--quiet btn--icon"
+          onClick={onExport}
+          title={canShare() ? 'Share this deck' : 'Export this deck'}
+        >
+          <IconShare className="btn__icon" />
         </button>
         <button className="btn btn--quiet btn--icon" onClick={onDelete} title="Delete deck">
           <IconTrash className="btn__icon" />

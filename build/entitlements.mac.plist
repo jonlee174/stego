@@ -2,10 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!--
-	  Hardened Runtime is required for notarization. Electron's V8 engine needs
-	  these three exceptions or the app crashes on launch once hardened.
-	-->
+	<!-- Hardened Runtime needs these three or V8 crashes on launch. -->
 	<key>com.apple.security.cs.allow-jit</key>
 	<true/>
 	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>

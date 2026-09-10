@@ -1,10 +1,10 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 
-/**
- * Writes a JSON export wherever the current platform can put one, and returns a
- * sentence describing where it landed.
- */
+/** Registered in Info.plist so iOS opens these files in Stego. */
+export const DECK_EXTENSION = 'stegodeck';
+
+/** Writes the export and returns a sentence saying where it landed. */
 export async function exportJson(filename: string, contents: string): Promise<string> {
   const bridge = typeof window !== 'undefined' ? window.stegoDesktop : undefined;
 
@@ -48,7 +48,8 @@ export function pickJsonFile(): Promise<string | null> {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'application/json,.json';
+    // No MIME type exists for .stegodeck, so it must be listed by extension.
+    input.accept = `.${DECK_EXTENSION},application/json,.json`;
     input.style.display = 'none';
     input.onchange = () => {
       const file = input.files?.[0];

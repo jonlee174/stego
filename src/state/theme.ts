@@ -36,6 +36,7 @@ const DEFAULT_DINO: DinoName = 'stegosaurus';
 const MODE_KEY = 'stego.theme';
 const DINO_KEY = 'stego.dino';
 const PALETTE_KEY = 'stego.palette';
+const SYNC_THEME_KEY = 'stego.syncTheme';
 /** Written by versions that bundled the dinosaur and color into one choice. */
 const LEGACY_SKIN_KEY = 'stego.skin';
 
@@ -92,12 +93,8 @@ function applyPalette(palette: Palette) {
   document.documentElement.setAttribute('data-palette', palette);
 }
 
-/**
- * The page is not the only thing that shows a color. The browser status bar and
- * the desktop window frame paint before or behind it, so both are told the
- * active background. Read from the body rather than the custom property, since
- * this returns a resolved rgb() value.
- */
+// The status bar and window frame paint outside the page, so both are told the
+// background. Read from body, which resolves to an actual rgb().
 function syncChrome() {
   if (typeof document === 'undefined') return;
   const bg = getComputedStyle(document.body).backgroundColor;
@@ -179,6 +176,26 @@ export function useDino(): [DinoName, (next: DinoName) => void] {
 
 export function usePalette(): [Palette, (next: Palette) => void] {
   return [useAppearanceValue(readPalette), setPalette];
+}
+
+/** Local only by design: it answers "should this device follow the others", so
+ * syncing it would let one device answer for all of them. */
+export function useSyncTheme(): [boolean, (next: boolean) => void] {
+  return [useAppearanceValue(readSyncTheme), setSyncTheme];
+}
+
+export function currentSyncTheme(): boolean {
+  return readSyncTheme();
+}
+
+export function setSyncTheme(on: boolean) {
+  store(SYNC_THEME_KEY, on ? 'on' : 'off');
+  notify();
+}
+
+function readSyncTheme(): boolean {
+  if (typeof localStorage === 'undefined') return false;
+  return localStorage.getItem(SYNC_THEME_KEY) === 'on';
 }
 
 /** Applied before React mounts so the first paint is already the right theme. */

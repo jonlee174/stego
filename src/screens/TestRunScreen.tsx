@@ -60,11 +60,13 @@ export default function TestRunScreen({
 
   const submit = useCallback(() => {
     const result = gradeTest(test, responses);
-    // A graded answer is evidence of recall, so it moves the card's schedule.
-    // Only correctness is known here, so it maps to Good or Again rather than
-    // the finer ratings the study screen offers.
+    // A test never asks how hard a question felt, so effort is always neutral
+    // and only the outcome carries information.
     for (const { cardId, correct } of cardOutcomes(result)) {
-      reviewCard(test.deckId, cardId, correct ? 'good' : 'again');
+      reviewCard(test.deckId, cardId, {
+        outcome: correct ? 'got-it' : 'again',
+        effort: 'medium',
+      });
     }
     onFinish(result);
   }, [onFinish, responses, test, reviewCard]);

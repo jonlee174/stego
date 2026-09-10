@@ -1,29 +1,19 @@
 import type { Card } from '../types';
-import type { Difficulty } from './scheduler';
+import type { Effort, Outcome, Verdict } from './scheduler';
 
-/**
- * A dynamic study session.
- *
- * Every card has to be answered Good before the session ends. A card rated
- * Again goes back into the queue instead, so the run naturally lengthens around
- * the cards that are giving trouble and finishes only once none of them are.
- */
+// A card leaves the run only once it was got and did not feel hard.
 
-/** How many cards to put in front of a card before it returns. */
-const GAP: Record<Difficulty, number | null> = {
-  again: 2,
-  // Good retires the card for this session.
-  good: null,
+/** Cards to put in front of it before it returns; null retires it. */
+const GAP: Record<Outcome, Record<Effort, number | null>> = {
+  again: { hard: 1, medium: 2, easy: 3 },
+  'got-it': { hard: 5, medium: null, easy: null },
 };
 
 export interface Session {
-  /** Cards still to answer, in order. */
   queue: Card[];
-  /** Ids answered Good or Easy, so progress can be shown. */
   cleared: string[];
   /** Ids that needed more than one attempt. */
   struggled: string[];
-  /** Total distinct cards the session started with. */
   size: number;
 }
 
@@ -39,21 +29,16 @@ export function isComplete(session: Session): boolean {
   return session.queue.length === 0;
 }
 
-/** Cards cleared out of the total, for a progress bar. */
 export function progress(session: Session): number {
   return session.size === 0 ? 1 : session.cleared.length / session.size;
 }
 
-/**
- * Answers the current card and returns the next state.
- * A card rated Again is pushed back into the queue rather than cleared.
- */
-export function answer(session: Session, difficulty: Difficulty): Session {
+export function answer(session: Session, verdict: Verdict): Session {
   const card = currentCard(session);
   if (!card) return session;
 
   const rest = session.queue.slice(1);
-  const gap = GAP[difficulty];
+  const gap = GAP[verdict.outcome][verdict.effort];
 
   if (gap === null) {
     return {
@@ -65,8 +50,6 @@ export function answer(session: Session, difficulty: Difficulty): Session {
     };
   }
 
-  // Reinsert far enough back that it is not the very next card, but close
-  // enough to still be in this session.
   const at = Math.min(gap, rest.length);
   return {
     ...session,
@@ -77,7 +60,7 @@ export function answer(session: Session, difficulty: Difficulty): Session {
   };
 }
 
-/** Removes a card from the run entirely, for "I know this one after all". */
+/** Removes a card from the run entirely, for "not hard after all". */
 export function retire(session: Session, cardId: string): Session {
   return {
     ...session,

@@ -50,10 +50,8 @@
 .home {
   position: relative;
   overflow: hidden;
-  /* The app shell insets its bottom for the home indicator, which would leave
-     the mascot standing on a band of empty background. Reach back through that
-     inset and re-add it as padding, so the flow content still clears the
-     indicator but the clip region runs to the true bottom of the screen. */
+  /* Reach back through the shell's home-indicator inset and re-add it as
+     padding, so the mascot can stand on the true bottom edge. */
   margin-bottom: calc(-1 * var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
 }
@@ -73,17 +71,14 @@
   }
 }
 
-/* On an iPad or a wide desktop window the menu is short relative to the screen,
-   so float it in the middle instead of stranding it against the top edge.
-   Auto margins rather than align-items so a short window still scrolls. */
+/* Float the menu mid-window rather than stranding it at the top. Auto margins
+   rather than align-items, so a short window still scrolls. */
 @media (min-width: 720px) {
   .home .content {
     display: flex;
   }
 
-  /* `auto` on all four sides: the top/bottom pair centers it vertically, and
-     the left/right pair preserves the horizontal centering `.wrap` sets up.
-     Writing `auto 0` here zeroes the side margins and pins the column left. */
+  /* All four sides: `auto 0` zeroes the sides and pins the column left. */
   .home__inner {
     margin: auto;
     width: 100%;
@@ -92,10 +87,8 @@
   }
 }
 
-/* A phone in landscape is barely taller than the menu itself. Tighten the
-   column so the whole home screen still fits without scrolling, and take back
-   the top inset the wide layout drops, or the wordmark runs under the floating
-   settings and theme controls. */
+/* Landscape phone: fit without scrolling, and take back the top inset the wide
+   layout drops or the wordmark runs under the floating controls. */
 @media (max-height: 500px) and (min-width: 720px) {
   .home__inner {
     gap: 14px;
@@ -108,9 +101,7 @@
   text-align: center;
 }
 
-/* The wordmark is a flat single-color shape, so it is painted as a mask fill
-   rather than an image. Same letterforms, but it takes the theme's accent in
-   both light and dark instead of being locked to the original green. */
+/* Painted as a mask fill, so the wordmark takes the theme's accent. */
 .home__title {
   width: min(420px, 78%);
   aspect-ratio: 605 / 145;
@@ -207,8 +198,7 @@
   font-size: 0.88rem;
 }
 
-/* Sits after the base tile rules on purpose: a media query carries no
-   specificity of its own, so an earlier block would simply lose. */
+/* After the base rules on purpose: a media query adds no specificity. */
 @media (max-height: 500px) and (min-width: 720px) {
   .tile {
     min-height: 0;
@@ -250,13 +240,11 @@
 .home__stego {
   position: absolute;
   right: 14px;
-  /* Standing on the bottom edge, feet included. A negative offset here clipped
-     them against the overflow above. */
+  /* A negative offset here clipped the feet against the overflow above. */
   bottom: 0;
   display: block;
-  /* Bounded by the short side as well as the wide one. On a phone in landscape
-     34vw alone let the mascot grow tall enough to sit over the menu tiles, and
-     the vh term only binds on viewports short enough for that to happen. */
+  /* The vh term only binds on short viewports, where 34vw alone let the mascot
+     grow over the menu tiles. */
   width: min(210px, 34vw, 24vh);
   opacity: 0.5;
   pointer-events: none;
@@ -555,8 +543,7 @@ code {
   align-items: center;
 }
 
-/* Outside the nav row there is nothing to share space with, and the flex
-   growth above would otherwise stretch the dots down the whole column. */
+/* Without this the flex growth above stretches the dots down the column. */
 .study__dots--own-row {
   flex: 0 0 auto;
 }
@@ -1251,8 +1238,7 @@ code {
   font-size: 0.76rem;
 }
 
-/* The export chooser lists actions rather than plain buttons, so each one has
-   room for a line explaining where the file ends up. */
+/* Each choice has room for a line saying where the file ends up. */
 .export-choice {
   justify-content: flex-start;
   text-align: left;
@@ -1281,22 +1267,179 @@ code {
   white-space: normal;
 }
 
+/* --------------------------------------------------------- sync account */
+
+.toggle {
+  appearance: none;
+  background: none;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.toggle:hover {
+  background: var(--accent-quiet);
+}
+
+.toggle__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.toggle__label {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+
+.toggle__hint {
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.toggle__track {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 28px;
+  border-radius: 99px;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line);
+  position: relative;
+  transition: background 140ms ease;
+}
+
+.toggle[aria-checked='true'] .toggle__track {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 140ms ease;
+}
+
+.toggle[aria-checked='true'] .toggle__knob {
+  transform: translateX(18px);
+}
+
+.form__error {
+  color: var(--bad);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Choosing which decks an export covers. */
+.picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* Long libraries scroll rather than pushing the dialog off screen. */
+  max-height: min(46vh, 340px);
+  overflow-y: auto;
+}
+
+.picker__row {
+  justify-content: flex-start;
+  text-align: left;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.picker__row[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-quiet);
+}
+
+.picker__box {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.picker__row[aria-pressed='true'] .picker__box {
+  border-color: var(--accent);
+}
+
+.picker__name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.picker__count {
+  flex: 0 0 auto;
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+}
+
 /* Missed on the left, known on the right. */
 .study__verdict {
   flex: 1;
   min-width: 84px;
 }
 
+/* A lighter weight of the accent, not a warning: missing a card is ordinary. */
 .study__verdict--again {
-  --btn-bg: var(--bad);
+  --btn-bg: color-mix(in srgb, var(--accent) 25%, var(--surface));
+  --btn-fg: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
-.study__verdict--good {
+.study__verdict--got-it {
   --btn-bg: var(--accent);
 }
 
-/* Fired once a dynamic run clears the whole deck. Sits over everything and
-   takes no clicks, so the summary underneath stays usable. */
+/* The follow-up prompt: how hard the card felt, easiest first. */
+.study__efforts {
+  gap: 10px;
+}
+
+.study__effort {
+  flex: 1;
+  min-width: 84px;
+}
+
+.study__effort--easy {
+  --btn-bg: var(--good);
+}
+
+.study__effort--medium {
+  --btn-bg: var(--accent);
+}
+
+.study__effort--hard {
+  --btn-bg: var(--warn);
+}
+
+/* Takes no clicks, so the summary underneath stays usable. */
 .confetti {
   position: fixed;
   inset: 0;

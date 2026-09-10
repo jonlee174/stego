@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Nav } from '../App';
 import { useDeck, useDecks } from '../state/decks';
-import { EmptyState, Segmented, TopBar } from '../components/ui';
+import { Dialog, EmptyState, Segmented, TopBar } from '../components/ui';
 import { Confetti } from '../components/Confetti';
 import { useToast } from '../components/Toast';
 import {
@@ -11,7 +11,13 @@ import {
   IconShuffle,
 } from '../components/Icons';
 import { shuffle } from '../lib/random';
-import { describeNext, dueCards, gradeFor, isLeech, schedule, type Difficulty } from '../lib/scheduler';
+import {
+  dueCards,
+  isLeech,
+  type Effort,
+  type Outcome,
+  type Verdict,
+} from '../lib/scheduler';
 import {
   answer as answerCard,
   createSession,
@@ -23,10 +29,15 @@ import {
 } from '../lib/session';
 import type { Card, Direction, StudyMode } from '../types';
 
-/** Missed first, known second, matching the keyboard order. */
-const RATINGS: { value: Difficulty; label: string; key: string }[] = [
-  { value: 'again', label: 'Again', key: '1' },
-  { value: 'good', label: 'Good', key: '2' },
+const OUTCOMES: { value: Outcome; label: string; key: string }[] = [
+  { value: 'again', label: 'Review again', key: '1' },
+  { value: 'got-it', label: 'Got it', key: '2' },
+];
+
+const EFFORTS: { value: Effort; label: string; key: string }[] = [
+  { value: 'easy', label: 'Easy', key: '1' },
+  { value: 'medium', label: 'Medium', key: '2' },
+  { value: 'hard', label: 'Hard', key: '3' },
 ];
 
 const MODES: { value: StudyMode; label: string }[] = [
@@ -35,7 +46,6 @@ const MODES: { value: StudyMode; label: string }[] = [
   { value: 'dynamic', label: 'Dynamic' },
 ];
 
-/** Which cards a mode starts with. */
 function selectCards(cards: Card[], mode: StudyMode): Card[] {
   return mode === 'due' ? dueCards(cards) : cards;
 }
@@ -62,8 +72,11 @@ export default function StudyScreen({
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [side, setSide] = useState<Direction>('front-to-back');
-  const [verdicts, setVerdicts] = useState<Record<string, Difficulty>>({});
+  const [verdicts, setVerdicts] = useState<Record<string, Verdict>>({});
   const [cheered, setCheered] = useState(false);
+  // The card is captured with the outcome, so the effort prompt records against
+  // the right one however the queue moves.
+  const [pending, setPending] = useState<{ card: Card; outcome: Outcome } | null>(null);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   const dynamic = mode === 'dynamic';
@@ -75,11 +88,10 @@ export default function StudyScreen({
     setFlipped(false);
     setVerdicts({});
     setCheered(false);
+    setPending(null);
   }, []);
 
-  // Only reset when a different deck or mode is picked. Keying this on
-  // deck.cards would restart the run on every review, since recording one
-  // rewrites the deck.
+  // Keying this on deck.cards would restart the run on every review.
   useEffect(() => {
     reset(selectCards(deck?.cards ?? [], mode));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,34 +110,42 @@ export default function StudyScreen({
     [order.length],
   );
 
-  const mark = useCallback(
-    (difficulty: Difficulty) => {
-      if (!card) return;
-      reviewCard(deckId, card.id, difficulty);
-      setVerdicts((prev) => ({ ...prev, [card.id]: difficulty }));
+  /** What happened. Opens the effort prompt. */
+  const pick = useCallback(
+    (outcome: Outcome) => {
+      if (card) setPending({ card, outcome });
+    },
+    [card],
+  );
+
+  /** How hard it felt. This records the review. */
+  const rate = useCallback(
+    (effort: Effort) => {
+      if (!pending) return;
+      const { card: subject, outcome } = pending;
+      const verdict: Verdict = { outcome, effort };
+      setPending(null);
+      reviewCard(deckId, subject.id, verdict);
+      setVerdicts((prev) => ({ ...prev, [subject.id]: verdict }));
 
       if (dynamic) {
-        setSession((prev) => answerCard(prev, difficulty));
+        setSession((prev) => answerCard(prev, verdict));
         setFlipped(false);
-        // Within a dynamic run, when the card comes back matters more than
-        // when the schedule next asks for it.
-        if (difficulty === 'again') toast('Coming back in a moment');
-        else toast(`Back ${describeNext(schedule(card.review, gradeFor(difficulty)))}`);
         return;
       }
 
-      toast(`Back ${describeNext(schedule(card.review, gradeFor(difficulty)))}`);
       if (index < order.length - 1) go(1);
       else setFlipped(false);
     },
-    [card, dynamic, go, index, order.length, reviewCard, deckId, toast],
+    [pending, dynamic, go, index, order.length, reviewCard, deckId],
   );
 
-  /** "I know this one after all": clears it from the run for good. */
+  /** "Not hard after all": clears it from the run for good. */
   const clearIt = useCallback(() => {
     if (!card) return;
-    reviewCard(deckId, card.id, 'good');
-    setVerdicts((prev) => ({ ...prev, [card.id]: 'good' }));
+    const verdict: Verdict = { outcome: 'got-it', effort: 'easy' };
+    reviewCard(deckId, card.id, verdict);
+    setVerdicts((prev) => ({ ...prev, [card.id]: verdict }));
     setSession((prev) => retire(prev, card.id));
     setFlipped(false);
     toast('Cleared from this run');
@@ -147,7 +167,7 @@ export default function StudyScreen({
   }, [deck?.cards, mode, reset]);
 
   const reviewMissed = useCallback(() => {
-    const missed = order.filter((c) => verdicts[c.id] === 'again');
+    const missed = order.filter((c) => verdicts[c.id]?.outcome === 'again');
     if (missed.length === 0) return;
     setOrder(shuffle(missed));
     setIndex(0);
@@ -159,25 +179,33 @@ export default function StudyScreen({
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      // While the prompt is up the number keys mean the effort instead.
+      if (pending) {
+        const effort = EFFORTS.find((r) => r.key === e.key);
+        if (effort) rate(effort.value);
+        return;
+      }
+
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         setFlipped((f) => !f);
       } else if (e.key === 'ArrowRight' && !dynamic) go(1);
       else if (e.key === 'ArrowLeft' && !dynamic) go(-1);
       else {
-        const rating = RATINGS.find((r) => r.key === e.key);
-        if (rating) mark(rating.value);
+        const outcome = OUTCOMES.find((r) => r.key === e.key);
+        if (outcome) pick(outcome.value);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [dynamic, go, mark]);
+  }, [dynamic, go, pending, pick, rate]);
 
   const counts = useMemo(() => {
     const values = Object.values(verdicts);
     return {
-      known: values.filter((v) => v !== 'again').length,
-      again: values.filter((v) => v === 'again').length,
+      known: values.filter((v) => v.outcome !== 'again').length,
+      again: values.filter((v) => v.outcome === 'again').length,
     };
   }, [verdicts]);
 
@@ -232,8 +260,7 @@ export default function StudyScreen({
     );
   }
 
-  // Mixed alternates by the card's place in the deck, since a dynamic run has
-  // no running index of its own.
+  // A dynamic run has no running index, so Mixed uses the deck position.
   const seq = dynamic ? order.findIndex((c) => c.id === card?.id) : index;
   const showBackFirst = side === 'back-to-front' || (side === 'mixed' && seq % 2 === 1);
   const face = card ? (showBackFirst ? card.back : card.front) : '';
@@ -288,7 +315,10 @@ export default function StudyScreen({
           </div>
 
           {dynamic && (
-            <p className="hint">Cards you rate Again come back until you rate them Good.</p>
+            <p className="hint">
+              A card you miss, or rate Hard, comes back until you get it without a
+              struggle.
+            </p>
           )}
 
           {card && (
@@ -341,21 +371,21 @@ export default function StudyScreen({
               </div>
 
               <div className="row study__verdicts">
-                {RATINGS.map((rating) => (
+                {OUTCOMES.map((outcome) => (
                   <button
-                    key={rating.value}
-                    className={`btn study__verdict study__verdict--${rating.value}`}
-                    onClick={() => mark(rating.value)}
-                    title={`${rating.label} (${rating.key})`}
+                    key={outcome.value}
+                    className={`btn study__verdict study__verdict--${outcome.value}`}
+                    onClick={() => pick(outcome.value)}
+                    title={`${outcome.label} (${outcome.key})`}
                   >
-                    {rating.label}
+                    {outcome.label}
                   </button>
                 ))}
               </div>
 
               {struggling && (
                 <button className="btn btn--quiet btn--block" onClick={clearIt}>
-                  I know this one, stop showing it
+                  Not hard after all, clear it
                 </button>
               )}
             </>
@@ -378,8 +408,8 @@ export default function StudyScreen({
                     className={[
                       'study__dot',
                       i === index ? 'is-current' : '',
-                      verdicts[c.id] && verdicts[c.id] !== 'again' ? 'is-known' : '',
-                      verdicts[c.id] === 'again' ? 'is-again' : '',
+                      verdicts[c.id]?.outcome === 'got-it' ? 'is-known' : '',
+                      verdicts[c.id]?.outcome === 'again' ? 'is-again' : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
@@ -418,9 +448,6 @@ export default function StudyScreen({
           {cleared && (
             <div className="panel study__summary">
               <h2 className="panel__title">Whole deck cleared</h2>
-              <p className="muted">
-                {total} {total === 1 ? 'card' : 'cards'} seen, and nothing is still coming back.
-              </p>
               <div className="row">
                 <button className="btn" onClick={restart}>
                   <IconRestart className="btn__icon" />
@@ -472,6 +499,34 @@ export default function StudyScreen({
           />
         </div>
       </div>
+
+      {pending && (
+        <Dialog
+          title="How hard was that?"
+          onClose={() => setPending(null)}
+          footer={
+            <>
+              <span className="spacer" />
+              <button className="btn btn--quiet" onClick={() => setPending(null)}>
+                Cancel
+              </button>
+            </>
+          }
+        >
+          <div className="row study__efforts">
+            {EFFORTS.map((effort) => (
+              <button
+                key={effort.value}
+                className={`btn study__effort study__effort--${effort.value}`}
+                onClick={() => rate(effort.value)}
+                title={`${effort.label} (${effort.key})`}
+              >
+                {effort.label}
+              </button>
+            ))}
+          </div>
+        </Dialog>
+      )}
 
       {cleared && !cheered && <Confetti onDone={() => setCheered(true)} />}
     </section>

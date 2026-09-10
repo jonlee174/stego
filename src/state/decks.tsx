@@ -9,10 +9,12 @@ import {
 } from 'react';
 import {
   loadDecks,
+  loadRaw,
   loadSettings,
   saveDecks,
   parseDeckFile,
   parseSettings,
+  parseTombstones,
   serializeDecks,
   watchDecks,
 } from '../lib/storage';
@@ -32,9 +34,10 @@ import {
 } from './theme';
 import { makeId } from '../lib/random';
 import { starterDeck } from './starter';
-import { gradeFor, schedule, type Difficulty } from '../lib/scheduler';
+import { gradeFor, schedule, type Verdict } from '../lib/scheduler';
 import { watchIncomingDecks } from '../lib/incoming';
-import type { Card, Deck } from '../types';
+import { pruneTombstones, type Library } from '../lib/merge';
+import type { Card, Deck, Tombstone } from '../types';
 
 interface DecksApi {
   decks: Deck[];
@@ -44,12 +47,17 @@ interface DecksApi {
   updateDeck(id: string, patch: Partial<Omit<Deck, 'id'>>): void;
   deleteDeck(id: string): void;
   duplicateDeck(id: string): Deck | undefined;
-  importFile(raw: string, mode: 'merge' | 'replace'): number;
-  exportFile(): string;
+  /** Adds the decks in a file alongside the ones already here. */
+  importFile(raw: string): number;
+  /** Ids for a subset, omit for everything. Appearance rides along only on a
+   * whole-library export, never on a subset shared with someone else. */
+  exportFile(deckIds?: string[]): string;
   /** Registers a callback for decks arriving from a shared file. */
   onDecksReceived(cb: (names: string[]) => void): void;
   /** Records one spaced repetition review from the responder's own rating. */
-  reviewCard(deckId: string, cardId: string, difficulty: Difficulty): void;
+  reviewCard(deckId: string, cardId: string, verdict: Verdict): void;
+  library(): Library;
+  replaceLibrary(next: Library): void;
 }
 
 const DecksContext = createContext<DecksApi | null>(null);
@@ -90,6 +98,8 @@ function adopt(raw: string | null) {
 
 export function DecksProvider({ children }: { children: ReactNode }) {
   const [decks, setDecks] = useState<Deck[]>([]);
+  /** So a sync cannot bring a deleted deck back from another device. */
+  const [deleted, setDeleted] = useState<Tombstone[]>([]);
   const [ready, setReady] = useState(false);
   /** Serialization this app last saved, to tell our writes from remote ones. */
   const lastSaved = useRef<string | null>(null);
@@ -105,6 +115,9 @@ export function DecksProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     void loadSettings().then((remote) => {
       if (!cancelled) apply(remote);
+    });
+    void loadRaw().then((raw) => {
+      if (!cancelled && raw) setDeleted(pruneTombstones(parseTombstones(raw)));
     });
     loadDecks().then((loaded) => {
       if (cancelled) return;
@@ -124,11 +137,11 @@ export function DecksProvider({ children }: { children: ReactNode }) {
   // disk so a fresh install ends up with a real decks.json.
   useEffect(() => {
     if (!ready) return;
-    const serialized = serializeDecks(decks, appearance());
+    const serialized = serializeDecks(decks, appearance(), deleted);
     if (serialized === lastSaved.current) return;
     lastSaved.current = serialized;
-    void saveDecks(decks, appearance());
-  }, [decks, ready, dino, palette, mode]);
+    void saveDecks(decks, appearance(), deleted);
+  }, [decks, deleted, ready, dino, palette, mode]);
 
   // A deck someone sent, opened from Messages, Mail or Files. Merged rather
   // than replacing anything, so an incoming file can never cost you a deck.
@@ -189,6 +202,7 @@ export function DecksProvider({ children }: { children: ReactNode }) {
       },
       deleteDeck(id) {
         setDecks((prev) => prev.filter((d) => d.id !== id));
+        setDeleted((prev) => [...prev.filter((t) => t.id !== id), { id, at: Date.now() }]);
       },
       duplicateDeck(id) {
         const source = decks.find((d) => d.id === id);
@@ -205,17 +219,17 @@ export function DecksProvider({ children }: { children: ReactNode }) {
         setDecks((prev) => [copy, ...prev]);
         return copy;
       },
-      importFile(raw, mode) {
+      importFile(raw) {
         const incoming = parseDeckFile(raw).map((deck) => ({
           ...deck,
           // Re-key so an import can never collide with a deck already here.
           id: makeId('deck'),
           cards: deck.cards.map((c) => ({ ...c, id: makeId('card') })),
         }));
-        setDecks((prev) => (mode === 'replace' ? incoming : [...incoming, ...prev]));
+        setDecks((prev) => [...incoming, ...prev]);
         return incoming.length;
       },
-      reviewCard(deckId, cardId, difficulty) {
+      reviewCard(deckId, cardId, verdict) {
         setDecks((prev) =>
           prev.map((deck) => {
             if (deck.id !== deckId) return deck;
@@ -224,19 +238,30 @@ export function DecksProvider({ children }: { children: ReactNode }) {
               updatedAt: Date.now(),
               cards: deck.cards.map((card) =>
                 card.id === cardId
-                  ? { ...card, review: schedule(card.review, gradeFor(difficulty)) }
+                  ? { ...card, review: schedule(card.review, gradeFor(verdict)) }
                   : card,
               ),
             };
           }),
         );
       },
-      exportFile: () => serializeDecks(decks, appearance()),
+      exportFile(deckIds) {
+        if (!deckIds) return serializeDecks(decks, appearance());
+        const wanted = new Set(deckIds);
+        const picked = decks.filter((deck) => wanted.has(deck.id));
+        const whole = picked.length === decks.length;
+        return serializeDecks(picked, whole ? appearance() : null);
+      },
+      library: () => ({ decks, deleted }),
+      replaceLibrary(next) {
+        setDecks(next.decks);
+        setDeleted(next.deleted);
+      },
       onDecksReceived: (cb: (names: string[]) => void) => {
         received.current = cb;
       },
     };
-  }, [decks, ready]);
+  }, [decks, deleted, ready]);
 
   return <DecksContext.Provider value={api}>{children}</DecksContext.Provider>;
 }
